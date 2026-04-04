@@ -5,14 +5,14 @@ import 'package:medikto/core/utils/widgets/custom_textfields.dart';
 import 'package:medikto/features/home/add_reports/widgets/timings_widget.dart';
 import 'package:medikto/features/home/bottom_bar.dart';
 
-class PrescriptionFileScreen extends StatefulWidget {
-  const PrescriptionFileScreen({super.key});
+class AddPrescriptionFileScreen extends StatefulWidget {
+  const AddPrescriptionFileScreen({super.key});
 
   @override
-  State<PrescriptionFileScreen> createState() => _PrescriptionFileScreenState();
+  State<AddPrescriptionFileScreen> createState() => _AddPrescriptionFileScreenState();
 }
 
-class _PrescriptionFileScreenState extends State<PrescriptionFileScreen> {
+class _AddPrescriptionFileScreenState extends State<AddPrescriptionFileScreen> {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.sizeOf(context);

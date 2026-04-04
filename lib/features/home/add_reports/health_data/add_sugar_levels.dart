@@ -4,14 +4,14 @@ import 'package:medikto/core/utils/widgets/custom_button.dart';
 import 'package:medikto/features/home/add_reports/widgets/form_field_widget.dart';
 import 'package:medikto/features/home/bottom_bar.dart';
 
-class AddSugarLevelsSCreen extends StatefulWidget {
-  const AddSugarLevelsSCreen({super.key});
+class AddSugarLevelsScreen extends StatefulWidget {
+  const AddSugarLevelsScreen({super.key});
 
   @override
-  State<AddSugarLevelsSCreen> createState() => _AddSugarLevelsSCreenState();
+  State<AddSugarLevelsScreen> createState() => _AddSugarLevelsScreenState();
 }
 
-class _AddSugarLevelsSCreenState extends State<AddSugarLevelsSCreen> {
+class _AddSugarLevelsScreenState extends State<AddSugarLevelsScreen> {
   final List<FormFieldModel> slFields = [
     FormFieldModel(
       title: "RBS Value",

@@ -1,5 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:medikto/features/home/add_reports/health_data/add_blood_pressure.dart';
+import 'package:medikto/features/home/add_reports/health_data/add_body_temparature.dart';
+import 'package:medikto/features/home/add_reports/health_data/add_heart_rate.dart';
+import 'package:medikto/features/home/add_reports/health_data/add_sugar_levels.dart';
+import 'package:medikto/features/home/add_reports/health_records/add_lab_reports.dart';
+import 'package:medikto/features/home/add_reports/health_records/add_prescription_file.dart';
+import 'package:medikto/features/home/add_reports/health_records/add_vaccination_reports.dart';
 import 'package:medikto/features/home/home_view/home_screen.dart';
 import 'package:medikto/features/home/add_reports/health_records/add_medicine_reports.dart';
 import 'package:medikto/features/home/widgets/health_data_card.dart';
@@ -45,6 +51,37 @@ class _BaseBottomNavigationPageState extends State<BaseBottomNavigationPage> {
     {"name": "Lab Reports", "image": "assets/images/dna-tests.png"},
     {"name": "Prescription", "image": "assets/images/diabets-test.png"},
   ];
+
+
+  Widget _getHealthDataScreen(int index) {
+    switch (index) {
+      case 0:
+        return const AddBloodPressureScreen();
+      case 1:
+        return const AddHeartRateScreen();
+      case 2:
+        return const AddBodyTemparatureScreen();
+      case 3:
+        return const AddSugarLevelsScreen();
+      default:
+        return const SizedBox();
+    }
+  }
+
+  Widget _getHealthRecordScreen(int index) {
+    switch (index) {
+      case 0:
+        return const AddMedicalReportsScreen();
+      case 1:
+        return const AddVaccinationReportsScreen();
+      case 2:
+        return const AddLabReportsScreen();
+      case 3:
+        return const AddPrescriptionFileScreen();
+      default:
+        return const SizedBox();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -259,8 +296,8 @@ class _BaseBottomNavigationPageState extends State<BaseBottomNavigationPage> {
               context,
               MaterialPageRoute(
                 builder: (context) => isHealthData
-                    ? const AddBloodPressureScreen()
-                    : const AddMedicalReportsScreen(),
+                    ? _getHealthDataScreen(index)
+                    : _getHealthRecordScreen(index),
               ),
             );
           },
