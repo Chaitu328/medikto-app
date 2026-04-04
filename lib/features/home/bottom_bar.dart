@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:medikto/features/home/helath_records_views/add_blood_pressure.dart';
+import 'package:medikto/features/home/add_reports/health_data/add_blood_pressure.dart';
 import 'package:medikto/features/home/home_view/home_screen.dart';
-import 'package:medikto/features/home/helath_records_views/medicine_reports.dart';
+import 'package:medikto/features/home/add_reports/health_records/add_medicine_reports.dart';
 import 'package:medikto/features/home/widgets/health_data_card.dart';
 import 'package:medikto/features/profile/views/profile_screen.dart';
 import 'package:medikto/features/reports/views/reports_screen.dart';
@@ -255,6 +254,7 @@ class _BaseBottomNavigationPageState extends State<BaseBottomNavigationPage> {
           title: data[index]["name"]!,
           image: data[index]["image"]!,
           onTap: () {
+            Navigator.pop(context); // close sheet first
             Navigator.push(
               context,
               MaterialPageRoute(

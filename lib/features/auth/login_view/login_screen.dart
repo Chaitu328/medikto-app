@@ -116,10 +116,18 @@ class LoginScreen extends StatelessWidget {
                         decoration: InputDecoration(
                           suffixIcon: InkWell(
                             onTap: () => phoneController.clear(),
-                            child: Icon(
-                              Icons.close,
-                              size: 24,
-                              color: Color(0xFF000000),
+                            child: Padding(
+                              padding: const EdgeInsets.only(
+                                top: 14,
+                                bottom: 14,
+                              ),
+                              child: Image.asset(
+                                "assets/images/cancel.png",
+                                height: 16,
+                                width: 16,
+                                color: Color(0x805F6368),
+                                fit: BoxFit.contain,
+                              ),
                             ),
                           ),
                           hintText: "Enter mobile number",

@@ -1,24 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:medikto/core/utils/widgets/custom_appbar.dart';
 import 'package:medikto/core/utils/widgets/custom_button.dart';
 import 'package:medikto/core/utils/widgets/custom_textfields.dart';
 import 'package:medikto/features/home/bottom_bar.dart';
 
-class AddMedicalReportsScreen extends StatefulWidget {
-  const AddMedicalReportsScreen({super.key});
+class AddLabReportsScreen extends StatefulWidget {
+  const AddLabReportsScreen({super.key});
 
   @override
-  State<AddMedicalReportsScreen> createState() =>
-      _AddMedicalReportsScreenState();
+  State<AddLabReportsScreen> createState() => _AddLabReportsScreenState();
 }
 
-class _AddMedicalReportsScreenState extends State<AddMedicalReportsScreen> {
+class _AddLabReportsScreenState extends State<AddLabReportsScreen> {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.sizeOf(context);
-
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: _buildAppBar(),
+      appBar: CustomAppBar(title: "Lab Reports"),
 
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -35,7 +34,7 @@ class _AddMedicalReportsScreenState extends State<AddMedicalReportsScreen> {
 
                     /// 🔹 NAME FIELD
                     _buildTextField(
-                      title: "Medicine Report Name",
+                      title: "Lab Report Name",
                       hint: "Enter medicine report name",
                     ),
 
@@ -44,34 +43,6 @@ class _AddMedicalReportsScreenState extends State<AddMedicalReportsScreen> {
                       title: "Description",
                       hint: "Enter your medicine description, others",
                       maxLines: 3,
-                    ),
-
-                    /// 🔹 DATE + CONDITION
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildTextField(
-                            title: "Date",
-                            hint: "DD.MM.YY",
-                            borderColor: Colors.black,
-                            suffix: const Icon(
-                              Icons.calendar_month_outlined,
-                              color: Color(0xA3555555),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: _buildTextField(
-                            title: "Condition/illness",
-                            hint: "Critical",
-                            suffix: const Icon(
-                              Icons.keyboard_arrow_down_sharp,
-                              color: Color(0xA3555555),
-                            ),
-                          ),
-                        ),
-                      ],
                     ),
 
                     SizedBox(height: size.height * 0.02),
@@ -85,10 +56,10 @@ class _AddMedicalReportsScreenState extends State<AddMedicalReportsScreen> {
                       ),
                     ),
 
-                    SizedBox(height: size.height * 0.01),
+                    SizedBox(height: size.height * 0.04),
 
                     /// 🔹 ADD MEDICATION CARD
-                    _buildAddMedicationCard(),
+                    _buildAddLabReportCard(),
 
                     SizedBox(height: size.height * 0.05),
                   ],
@@ -121,30 +92,6 @@ class _AddMedicalReportsScreenState extends State<AddMedicalReportsScreen> {
     );
   }
 
-  /// 🔥 AppBar (separated → less rebuild)
-  PreferredSizeWidget _buildAppBar() {
-    return AppBar(
-      toolbarHeight: 60,
-      backgroundColor: Colors.white,
-      elevation: 0,
-      surfaceTintColor: Colors.transparent,
-      scrolledUnderElevation: 0,
-      leading: InkWell(
-        onTap: () => Navigator.pop(context),
-        child: const Icon(Icons.arrow_back_ios_new, color: Color(0xFF3D3D3D)),
-      ),
-      title: const Text(
-        "Medical Reports",
-        style: TextStyle(
-          fontSize: 20,
-          fontWeight: FontWeight.w500,
-          color: Color(0xFF3D3D3D),
-        ),
-      ),
-    );
-  }
-
-  /// 🔥 Reusable TextField (reduces rebuild cost)
   Widget _buildTextField({
     required String title,
     required String hint,
@@ -175,9 +122,9 @@ class _AddMedicalReportsScreenState extends State<AddMedicalReportsScreen> {
   }
 
   /// 🔥 Add Medication Card (optimized)
-  Widget _buildAddMedicationCard() {
+  Widget _buildAddLabReportCard() {
     return Container(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 10),
+      // padding: const EdgeInsets.fromLTRB(20, 16, 20, 10),
       decoration: BoxDecoration(
         color: const Color(0xFFFFFFFF),
         borderRadius: BorderRadius.circular(8),
@@ -200,9 +147,9 @@ class _AddMedicalReportsScreenState extends State<AddMedicalReportsScreen> {
                   color: const Color(0xFF213598),
                 ),
               ),
-              const SizedBox(width: 20),
+              const SizedBox(width: 10),
               const Text(
-                "Add Medication",
+                "Add Lab Report",
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w600,

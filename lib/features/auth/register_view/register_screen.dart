@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:medikto/core/utils/widgets/custom_button.dart';
 import 'package:medikto/core/utils/widgets/custom_textfields.dart';
 import 'package:medikto/features/auth/register_view/account_create_success.dart';
+import 'package:medikto/features/auth/widgets/gender_selection_widget.dart';
 
 class RegisterScreen extends StatelessWidget {
   const RegisterScreen({super.key});
@@ -144,7 +145,7 @@ class _FormFields extends StatelessWidget {
           children: [
             Expanded(child: _buildField("DOB", "DD/MM/YYYY")),
             SizedBox(width: size.width * 0.04),
-            const Expanded(child: _GenderSection()),
+            Expanded(child: GenderSection()),
           ],
         ),
 
@@ -195,61 +196,6 @@ class _FormFields extends StatelessWidget {
   }
 }
 
-class _GenderSection extends StatelessWidget {
-  const _GenderSection();
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          "Gender",
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w500,
-            color: Color(0xFF555555),
-          ),
-        ),
-        const SizedBox(height: 8),
-        Row(
-          children: const [
-            _GenderOption("Male"),
-            SizedBox(width: 16),
-            _GenderOption("Female"),
-          ],
-        ),
-      ],
-    );
-  }
-}
-
-class _GenderOption extends StatelessWidget {
-  final String text;
-
-  const _GenderOption(this.text);
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Container(
-          height: 20,
-          width: 20,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            border: Border.all(width: 2, color: Color(0x8A555555)),
-          ),
-        ),
-        const SizedBox(width: 6),
-        Text(
-          text,
-          style: const TextStyle(fontSize: 16, color: Color(0x8A555555)),
-        ),
-      ],
-    );
-  }
-}
 
 class _BottomSection extends StatelessWidget {
   final Size size;

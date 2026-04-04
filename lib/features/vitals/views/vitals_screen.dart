@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:medikto/core/utils/widgets/custom_appbar.dart';
 import 'package:medikto/core/utils/widgets/custom_button.dart';
 import 'package:medikto/features/vitals/views/vitals_track_details.dart';
 
@@ -50,7 +51,7 @@ class _VitalsScreenState extends State<VitalsScreen> {
 
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: _buildAppBar(),
+      appBar: CustomAppBar(title: "Vitals"),
 
       /// 🔥 Smooth Scroll Fix
       body: CustomScrollView(
@@ -314,22 +315,4 @@ class _VitalsScreenState extends State<VitalsScreen> {
     );
   }
 
-  PreferredSizeWidget _buildAppBar() {
-    return AppBar(
-      toolbarHeight: 60,
-      backgroundColor: Colors.white,
-      elevation: 0,
-      surfaceTintColor: Colors.transparent,
-      scrolledUnderElevation: 0,
-      leading: const Icon(Icons.arrow_back_ios_new, color: Color(0xFF3D3D3D)),
-      title: const Text(
-        "Vitals",
-        style: TextStyle(
-          fontSize: 20,
-          fontWeight: FontWeight.w500,
-          color: Color(0xFF3D3D3D),
-        ),
-      ),
-    );
-  }
 }

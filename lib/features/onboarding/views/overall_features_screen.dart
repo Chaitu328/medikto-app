@@ -81,11 +81,10 @@ class _OverrallFeaturesScreenState extends State<OverrallFeaturesScreen> {
                                 CrossAxisAlignment.start, // ✅ ALIGN ALL LEFT
                             children: [
                               _featureItem("Secure Storage"),
+                              _featureItem("Medicine Reminders"),
                               _featureItem("Organized Records"),
                               _featureItem("Trusted Privacy"),
                               _featureItem("Doctor Sharing"),
-                              _featureItem("ABDM Govt. Health ID"),
-                              _featureItem("Family Accounts"),
                             ],
                           ),
                         ),

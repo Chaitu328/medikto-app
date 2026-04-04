@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:medikto/core/utils/widgets/custom_appbar.dart';
 import 'package:medikto/features/profile/views/edit_profile.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -9,28 +10,15 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
+  bool isSwitched = false;
   @override
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.sizeOf(context); // ✅ correct
+    
 
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
-      appBar: AppBar(
-        toolbarHeight: 60,
-        backgroundColor: Colors.white,
-        elevation: 0,
-        surfaceTintColor: Colors.transparent,
-        scrolledUnderElevation: 0,
-        leading: const Icon(Icons.arrow_back_ios_new, color: Color(0xFF3D3D3D)),
-        title: const Text(
-          "Profile",
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w500,
-            color: Color(0xFF3D3D3D),
-          ),
-        ),
-      ),
+      appBar: CustomAppBar(title: "Profile"),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20),
         child: SingleChildScrollView(
@@ -149,10 +137,70 @@ class _ProfileScreenState extends State<ProfileScreen> {
               /// 🔹 Settings Section
               _buildSection(
                 title: "Settings",
-                children: const [
-                  _ListItem(
-                    icon: Icons.notifications_none,
-                    title: "Notifications",
+                children: [
+                  ListTile(
+                    dense: true,
+                    visualDensity: VisualDensity.compact,
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(
+                      "Notifications", // Your existing title
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w500,
+                        color: Color(0xFF3D3D3D),
+                      ),
+                    ),
+
+                    /// 🔵 LEADING ICON
+                    leading: const Icon(
+                      Icons.notifications_outlined,
+                      color: Color(0xFF5F6368),
+                    ),
+
+                    /// 🟢 TRAILING SWITCH INTEGRATION
+                    trailing: Transform.scale(
+                      scale: 0.8,
+                      child: Switch(
+                        value: isSwitched,
+                        onChanged: (value) {
+                          setState(() {
+                            isSwitched = value;
+                          });
+                        },
+
+                        /// 🔵 Thumb (circle)
+                        thumbColor: WidgetStateProperty.resolveWith<Color>((
+                          states,
+                        ) {
+                          if (states.contains(WidgetState.selected)) {
+                            return const Color(0xFF213598); // ON thumb
+                          }
+                          return const Color(0xFF929292); // OFF thumb
+                        }),
+
+                        /// 🟦 Track (background)
+                        trackColor: WidgetStateProperty.resolveWith<Color>((
+                          states,
+                        ) {
+                          if (states.contains(WidgetState.selected)) {
+                            return const Color(
+                              0xFF213598,
+                            ).withAlpha(50); // ON background
+                          }
+                          return Colors.white; // OFF background
+                        }),
+
+                        /// 🔥 Border
+                        trackOutlineColor:
+                            WidgetStateProperty.resolveWith<Color>((states) {
+                              if (states.contains(WidgetState.selected)) {
+                                return const Color(0xFF213598); // ON border
+                              }
+                              return const Color(0xFF929292); // OFF border
+                            }),
+                        trackOutlineWidth: WidgetStateProperty.all(2),
+                      ),
+                    ),
                   ),
                   _ListItem(
                     icon: Icons.wordpress_outlined,

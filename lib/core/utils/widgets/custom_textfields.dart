@@ -1,69 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-class CustomTextfield extends StatefulWidget {
-  final TextEditingController? controller;
-  final String? titleText;
-  final TextStyle? titleTextStyle;
-  final String? hintText;
-  final TextStyle? hintStyle;
-  final TextStyle? textStyle;
-  const CustomTextfield({
-    super.key,
-    this.controller,
-    this.hintStyle,
-    this.hintText,
-    this.textStyle,
-    this.titleText,
-    this.titleTextStyle,
-  });
-
-  @override
-  State<CustomTextfield> createState() => _CustomTextfieldState();
-}
-
-class _CustomTextfieldState extends State<CustomTextfield> {
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          widget.titleText ?? "",
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w500,
-            color: Color(0xFF555555),
-          ),
-        ),
-        SizedBox(height: MediaQuery.sizeOf(context).height * 0.01),
-        Container(
-          height: 46,
-          width: double.infinity,
-          decoration: BoxDecoration(
-            color: Color(0xFFffffff),
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Color(0xFF555555)),
-          ),
-          child: TextField(
-            style: widget.titleTextStyle ?? TextStyle(),
-            decoration: InputDecoration(
-              hintStyle:
-                  widget.hintStyle ??
-                  TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w400,
-                    color: Color(0xFF555555),
-                  ),
-              hintText: widget.hintText ?? "",
-              border: OutlineInputBorder(borderSide: BorderSide.none),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
 
 class AppTextFormFieldTitled extends StatelessWidget {
   final String? title;
@@ -96,6 +33,7 @@ class AppTextFormFieldTitled extends StatelessWidget {
   final int? maxLines;
   final int? minLines;
   final bool? expands;
+  final bool isRequired;
 
   const AppTextFormFieldTitled({
     super.key,
@@ -129,6 +67,7 @@ class AppTextFormFieldTitled extends StatelessWidget {
     this.maxLines,
     this.minLines,
     this.expands,
+    this.isRequired = false,
   });
 
   @override
@@ -141,15 +80,27 @@ class AppTextFormFieldTitled extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (title != null)
-              Text(
-                title ?? "",
-                style:
-                    titleTextStyle ??
-                    TextStyle(
-                      color: color ?? Color(0xFF000000),
-                      fontWeight: FontWeight.w500,
-                      fontSize: 12,
-                    ),
+              RichText(
+                text: TextSpan(
+                  text: title,
+                  style:
+                      titleTextStyle ??
+                      TextStyle(
+                        color: color ?? const Color(0xFF000000),
+                        fontWeight: FontWeight.w500,
+                        fontSize: 12,
+                      ),
+                  children: [
+                    if (isRequired)
+                      const TextSpan(
+                        text: " *",
+                        style: TextStyle(
+                          color: Color(0xFFEF3235), // 🔴 RED STAR
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                  ],
+                ),
               ),
             if (title != null) const SizedBox(height: 10),
             SizedBox(

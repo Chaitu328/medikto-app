@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:medikto/features/home/bottom_bar.dart';
-import 'package:otp_text_field/otp_field.dart';
-import 'package:otp_text_field/otp_field_style.dart';
-import 'package:otp_text_field/style.dart';
+import 'package:pinput/pinput.dart';
 
 class OtpScreen extends StatefulWidget {
   const OtpScreen({super.key});
@@ -12,14 +10,15 @@ class OtpScreen extends StatefulWidget {
 }
 
 class _OtpScreenState extends State<OtpScreen> {
-  final OtpFieldController otpController = OtpFieldController();
+  final TextEditingController _pinController = TextEditingController();
+  final FocusNode _focusNode = FocusNode();
 
   bool _loading = false;
   String enteredOtp = "";
 
   @override
   void dispose() {
-    otpController.clear(); // ✅ cleanup
+    _pinController.dispose();
     super.dispose();
   }
 
@@ -42,6 +41,21 @@ class _OtpScreenState extends State<OtpScreen> {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.sizeOf(context); // ✅ cache once
+
+    // Match your existing UI Style
+    final defaultPinTheme = PinTheme(
+      width: size.width * 0.12,
+      height: 56,
+      textStyle: const TextStyle(
+        fontSize: 24,
+        color: Colors.black,
+        fontWeight: FontWeight.bold,
+      ),
+      decoration: BoxDecoration(
+        color: const Color(0xFFEDEFF3),
+        borderRadius: BorderRadius.circular(6),
+      ),
+    );
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -86,35 +100,26 @@ class _OtpScreenState extends State<OtpScreen> {
               ),
 
               SizedBox(height: size.height * 0.04),
-
-              /// 🔹 OTP FIELD
+              ///🔹 OTP FIELD
               SizedBox(
                 width: double.infinity,
-                child: OTPTextField(
+                child: Pinput(
                   length: 6,
-                  fieldWidth: size.width * 0.11, // ✅ responsive
-                  controller: otpController,
+                  controller: _pinController,
+                  focusNode: _focusNode,
                   keyboardType: TextInputType.number,
-                  fieldStyle: FieldStyle.box,
-                  outlineBorderRadius: 6,
-                  style: const TextStyle(
-                    fontSize: 26,
-                    color: Colors.black,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  otpFieldStyle: OtpFieldStyle(
-                    disabledBorderColor: Colors.transparent,
-                    backgroundColor: Color(0xFFEDEFF3),
-                    borderColor: Colors.transparent,
-                    focusBorderColor: Colors.transparent,
-                    enabledBorderColor: Colors.transparent,
-                  ),
-                  onCompleted: (pin) {
-                    enteredOtp = pin;
-                    _verifyOtp();
-                  },
+                  defaultPinTheme: defaultPinTheme,
+                  // Use same theme for focus/hover to keep UI consistent
+                  focusedPinTheme: defaultPinTheme,
+                  submittedPinTheme: defaultPinTheme,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  separatorBuilder: (index) => const SizedBox(width: 8),
+                  onCompleted: (pin) => _verifyOtp(),
+                  autofocus: true, // Opens keyboard immediately for better UX
                 ),
               ),
+
+              
 
               SizedBox(height: size.height * 0.02),
 

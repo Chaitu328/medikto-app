@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:medikto/core/utils/widgets/custom_button.dart';
 import 'package:medikto/core/utils/widgets/custom_textfields.dart';
+import 'package:medikto/features/auth/widgets/gender_selection_widget.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -10,15 +11,16 @@ class EditProfileScreen extends StatefulWidget {
 }
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
-  late final Size screenSize;
+
 
   @override
   Widget build(BuildContext context) {
-    screenSize = MediaQuery.sizeOf(context);
+    final Size screenSize = MediaQuery.sizeOf(context);
 
     return Scaffold(
       backgroundColor: const Color(0xFFF9F9F9),
       appBar: AppBar(
+        titleSpacing: 0,
         toolbarHeight: 60,
         backgroundColor: Colors.white,
         elevation: 0,
@@ -135,12 +137,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     children: [
                       _buildField(title: "Age", hint: "Age", width: 160),
                       SizedBox(width: screenSize.width * 0.05),
-                      _buildGender(),
+                      GenderSection()
                     ],
                   ),
 
                   /// 🔹 Height + Weight
                   Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       _buildField(
                         title: "Height",
@@ -160,16 +163,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
                   SizedBox(height: screenSize.height * 0.05),
 
-                  const Text(
-                    "ABHA Health Card",
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w500,
-                      color: Color(0xFF263238),
-                    ),
-                  ),
-
-                  SizedBox(height: screenSize.height * 0.1),
+                  
                 ],
               ),
             ),
@@ -203,6 +197,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     double? width,
     IconData? suffixIcon,
   }) {
+    final Size screenSize = MediaQuery.sizeOf(context);
     return Padding(
       padding: EdgeInsets.only(bottom: screenSize.height * 0.005),
       child: AppTextFormFieldTitled(
@@ -228,52 +223,4 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
-  /// 🔥 Gender Widget
-  Widget _buildGender() {
-    return Padding(
-      padding: const EdgeInsets.only(top: 14),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            "Gender",
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w500,
-              color: Color(0xFF555555),
-            ),
-          ),
-          SizedBox(height: screenSize.height * 0.01),
-          Row(
-            children: [
-              _genderOption("Male"),
-              SizedBox(width: screenSize.width * 0.04),
-              _genderOption("Female"),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _genderOption(String text) {
-    return Row(
-      children: [
-        Container(
-          height: 20,
-          width: 20,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            shape: BoxShape.circle,
-            border: Border.all(color: const Color(0xFF555555)),
-          ),
-        ),
-        SizedBox(width: screenSize.width * 0.02),
-        Text(
-          text,
-          style: const TextStyle(fontSize: 16, color: Color(0xFF555555)),
-        ),
-      ],
-    );
-  }
 }
