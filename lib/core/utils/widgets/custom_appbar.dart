@@ -36,14 +36,26 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
           : null,
 
       /// 📝 Title
-      title: Text(
-        title ?? '',
-        style: const TextStyle(
-          fontSize: 20,
-          fontWeight: FontWeight.w500,
-          color: Color(0xFF3D3D3D),
-        ),
-      ),
+      title: showBackButton == false
+          ? Padding(
+              padding: const EdgeInsets.only(left: 20),
+              child: Text(
+                title ?? '',
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w500,
+                  color: Color(0xFF3D3D3D),
+                ),
+              ),
+            )
+          : Text(
+              title ?? '',
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w500,
+                color: Color(0xFF3D3D3D),
+              ),
+            ),
     );
   }
 

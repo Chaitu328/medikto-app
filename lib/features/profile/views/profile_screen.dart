@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:medikto/core/utils/widgets/custom_appbar.dart';
+import 'package:medikto/features/profile/change_password_view/change_password_screen.dart';
 import 'package:medikto/features/profile/views/edit_profile.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -14,11 +15,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.sizeOf(context); // ✅ correct
-    
 
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
-      appBar: CustomAppBar(title: "Profile"),
+      appBar: CustomAppBar(
+        title: "Profile",
+        onBack: () {},
+        showBackButton: false,
+      ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20),
         child: SingleChildScrollView(
@@ -216,8 +220,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
               /// 🔹 Password
               _buildSection(
                 title: "Password",
-                children: const [
+                children: [
                   _ListItem(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const ChangePasswordScreen(),
+                        ),
+                      );
+                    },
+
                     icon: Icons.key,
                     title: "Change Password",
                     trailing: Icons.arrow_forward_ios,
@@ -336,6 +349,7 @@ class _ListItem extends StatelessWidget {
   final String? subtitle;
   final IconData? trailing;
   final Color? color;
+  final GestureTapCallback? onTap;
 
   const _ListItem({
     required this.icon,
@@ -343,6 +357,7 @@ class _ListItem extends StatelessWidget {
     this.subtitle,
     this.trailing,
     this.color,
+    this.onTap,
   });
 
   @override
@@ -369,7 +384,7 @@ class _ListItem extends StatelessWidget {
       trailing: trailing != null
           ? Icon(trailing, size: 20, color: const Color(0xFF5F6368))
           : null,
-      onTap: () {},
+      onTap: () => onTap?.call(),
     );
   }
 }

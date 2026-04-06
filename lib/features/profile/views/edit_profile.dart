@@ -124,7 +124,36 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     hint: "Enter your first name",
                   ),
 
-                  _buildField(title: "Contact", hint: "+91 - "),
+                  AppTextFormFieldTitled(
+                    title: "Contact",
+                    hintText: "",
+                    focusColor: Colors.black,
+                    fillColor: Colors.white,
+                    color: Colors.white,
+                    textInputType: TextInputType.phone,
+
+                    prefix: Text(
+                      "+91",
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w400,
+                        color: Color(0xFF555555),
+                      ),
+                    ),
+                    borderColor: const Color(0xA3555555),
+                    hintStyle: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w400,
+                      color: Color(0xA3555555),
+                    ),
+                    titleTextStyle: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w500,
+                      color: Color(0xFF555555),
+                    ),
+                  ),
+                  SizedBox(height: screenSize.height * 0.005),
+
 
                   _buildField(
                     title: "Blood Group",

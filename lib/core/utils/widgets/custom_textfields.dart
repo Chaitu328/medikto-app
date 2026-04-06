@@ -125,7 +125,7 @@ class AppTextFormFieldTitled extends StatelessWidget {
                     textStyle ??
                     TextStyle(
                       fontSize: 16,
-                      fontWeight: FontWeight.w700,
+                      fontWeight: FontWeight.w500,
                       color: Color(0xFF000000),
                     ), // Apply textStyle for the input text
                 decoration: InputDecoration(

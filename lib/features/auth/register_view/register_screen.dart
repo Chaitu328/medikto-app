@@ -18,7 +18,7 @@ class RegisterScreen extends StatelessWidget {
         statusBarIconBrightness: Brightness.dark,
       ),
       child: Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: Color(0xFFF9F9F9),
         body: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
           child: Column(
@@ -136,8 +136,38 @@ class _FormFields extends StatelessWidget {
       children: [
         _buildField("Full Name", "Enter your full name"),
         SizedBox(height: size.height * 0.005),
+        AppTextFormFieldTitled(
+          title: "Contact",
+          hintText: "",
+          focusColor: Colors.black,
+          fillColor: Colors.white,
+          color: Colors.white,
+          textInputType: TextInputType.phone,
 
-        _buildField("Contact", "+91 - "),
+          prefix: Text(
+            "+91",
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w400,
+              color: Color(0xFF555555),
+            ),
+          ),
+          borderColor: const Color(0xA3555555),
+          hintStyle: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w400,
+            color: Color(0xA3555555),
+          ),
+          titleTextStyle: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w500,
+            color: Color(0xFF555555),
+          ),
+        ),
+
+
+
+        // _buildField("Contact", "+91 - "),
         SizedBox(height: size.height * 0.005),
 
         /// 🔹 DOB + GENDER

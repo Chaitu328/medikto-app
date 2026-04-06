@@ -18,12 +18,12 @@ class _OnboardingScreensState extends State<OnboardingScreens> {
   final List<Map<String, String>> data = const [
     {
       "image": "assets/images/vault-rafiki.png",
-      "title": "Welcome to Health Safe",
-      "desc": "Your secure vault for health records",
+      "title": "Welcome to Medikto",
+      "desc": "Your smart companion for timely medications and secure health records.",
     },
     {
       "image": "assets/images/add-files-rafiki.png",
-      "title": "All Reports in One Place",
+      "title": "Medikto – Medicine reminder app",
       "desc": "Upload, organize, and access anytime",
     },
     {

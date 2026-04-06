@@ -4,27 +4,54 @@ import 'package:medikto/core/utils/widgets/custom_button.dart';
 import 'package:medikto/features/auth/login_view/otp_screen.dart';
 import 'package:medikto/features/auth/register_view/register_screen.dart';
 
-class LoginScreen extends StatelessWidget {
+class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
   @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  final TextEditingController phoneController = TextEditingController();
+  bool isButtonEnabled = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Listen to text changes to enable/disable button
+    phoneController.addListener(() {
+      final isTenDigits = phoneController.text.length == 10;
+      if (isTenDigits != isButtonEnabled) {
+        setState(() {
+          isButtonEnabled = isTenDigits;
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    phoneController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.sizeOf(context); // ✅ cache once
-    final TextEditingController phoneController = TextEditingController();
+    final size = MediaQuery.sizeOf(context);
 
     return Scaffold(
       backgroundColor: Colors.white,
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
         child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(), // ✅ smooth scroll
+          physics: const BouncingScrollPhysics(),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SizedBox(height: size.height * 0.06),
 
               InkWell(
-                onTap: () => Navigator.pop(context), // ✅ simple back navigation
+                onTap: () => Navigator.pop(context),
                 child: const Icon(
                   Icons.arrow_back,
                   size: 24,
@@ -59,12 +86,11 @@ class LoginScreen extends StatelessWidget {
               /// 🔹 PHONE INPUT
               Row(
                 children: [
-                  /// 🔹 COUNTRY CODE
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12),
                     alignment: Alignment.center,
                     height: 54,
-                    width: size.width * 0.2, // ✅ responsive
+                    width: size.width * 0.2,
                     decoration: BoxDecoration(
                       color: const Color(0xFFEDEFF3),
                       borderRadius: BorderRadius.circular(6),
@@ -95,7 +121,6 @@ class LoginScreen extends StatelessWidget {
 
                   const SizedBox(width: 10),
 
-                  /// 🔹 MOBILE FIELD
                   Expanded(
                     child: Container(
                       height: 54,
@@ -105,11 +130,11 @@ class LoginScreen extends StatelessWidget {
                       ),
                       child: TextField(
                         controller: phoneController,
-                        cursorColor: Color(0xFF000000),
+                        cursorColor: const Color(0xFF000000),
                         keyboardType: TextInputType.number,
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 18,
-                          fontWeight: FontWeight.w400,
+                          fontWeight: FontWeight.w500,
                           color: Color(0xFF000000),
                         ),
                         inputFormatters: [LengthLimitingTextInputFormatter(10)],
@@ -125,13 +150,13 @@ class LoginScreen extends StatelessWidget {
                                 "assets/images/cancel.png",
                                 height: 16,
                                 width: 16,
-                                color: Color(0x805F6368),
+                                color: const Color(0x805F6368),
                                 fit: BoxFit.contain,
                               ),
                             ),
                           ),
                           hintText: "Enter mobile number",
-                          hintStyle: TextStyle(
+                          hintStyle: const TextStyle(
                             fontSize: 16,
                             color: Color(0xFF5F6368),
                           ),
@@ -147,10 +172,9 @@ class LoginScreen extends StatelessWidget {
 
               SizedBox(height: size.height * 0.02),
 
-              /// 🔹 REGISTER TEXT
               Row(
                 children: [
-                  Text(
+                  const Text(
                     "Don't have an account?  ",
                     style: TextStyle(fontSize: 16, color: Color(0xFF7D7D7D)),
                   ),
@@ -160,8 +184,7 @@ class LoginScreen extends StatelessWidget {
                       MaterialPageRoute(builder: (_) => const RegisterScreen()),
                       (route) => false,
                     ),
-
-                    child: Text(
+                    child: const Text(
                       "Register",
                       style: TextStyle(fontSize: 16, color: Color(0xFF213598)),
                     ),
@@ -171,16 +194,23 @@ class LoginScreen extends StatelessWidget {
 
               SizedBox(height: size.height * 0.18),
 
-              /// 🔥 BUTTON
+              /// 🔥 BUTTON (Opacity Logic Added)
               CustomButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const OtpScreen()),
-                  );
-                },
+                // Disable button action if not 10 digits
+                onPressed: isButtonEnabled
+                    ? () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const OtpScreen()),
+                        );
+                      }
+                    : null, 
                 buttonText: "Send OTP",
-                buttonColor: const Color(0xFF213598),
+                // Set withOpacity(0.5) for the white-ish faded look when disabled
+                buttonColor: isButtonEnabled
+                    ? const Color(0xFF213598)
+                    : const Color(0xFF213598).withAlpha(50),
+                    
                 textStyle: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w700,

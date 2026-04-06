@@ -51,7 +51,11 @@ class _VitalsScreenState extends State<VitalsScreen> {
 
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: CustomAppBar(title: "Vitals"),
+      appBar: CustomAppBar(
+        title: "Vitals",
+        onBack: () {},
+        showBackButton: false,
+      ),
 
       /// 🔥 Smooth Scroll Fix
       body: CustomScrollView(
@@ -314,5 +318,4 @@ class _VitalsScreenState extends State<VitalsScreen> {
       ),
     );
   }
-
 }

@@ -253,6 +253,8 @@
 
 
 
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:medikto/core/utils/widgets/custom_appbar.dart'; // 🔥 High performance charts
@@ -309,43 +311,60 @@ class _VitalsTrackDetailsScreenState extends State<VitalsTrackDetailsScreen> {
           SliverToBoxAdapter(child: SizedBox(height: size.height * 0.016)),
 
           /// 🔹 Graph Card
+          /// 🔹 Graph Card with Watermark
           SliverPadding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             sliver: SliverToBoxAdapter(
-              child: Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(15),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
-                      blurRadius: 10,
-                      spreadRadius: 1,
+              child: Stack(
+                // Added Stack to place the watermark
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(15),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 10,
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      "Heart Rate",
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF3D3D3D),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          "Body Temperature", // Changed from Heart Rate to match Image
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF3D3D3D),
+                          ),
+                        ),
+                        const Text("°F", style: TextStyle(color: Colors.grey)),
+                        const SizedBox(height: 20),
+                        SizedBox(height: 200, child: _buildHeartRateChart()),
+                      ],
+                    ),
+                  ),
+                  
+                  // 🔥 THE CLIENT'S STAMP (Positioned at the top right of the card)
+                  Positioned(
+                    top: 10,
+                    right: 10,
+                    child: Opacity(
+                      opacity: 0.8, // Simulate ink transparency
+                      child: Transform.rotate(
+                        angle:
+                            -0.15, // Real-world stamping is never perfectly straight
+                        child: MediktoDigitalStamp(),
                       ),
                     ),
-                    const SizedBox(height: 20),
-
-                    /// 🔥 Real Line Chart
-                    SizedBox(height: 200, child: _buildHeartRateChart()),
-                  ],
-                ),
+),
+                ],
               ),
             ),
           ),
-
           SliverToBoxAdapter(child: SizedBox(height: size.height * 0.025)),
 
           /// 🔹 Custom Tab Toggle (Today/Weekly/Monthly)
@@ -530,6 +549,7 @@ class _VitalsTrackDetailsScreenState extends State<VitalsTrackDetailsScreen> {
   Widget _buildHeartRateChart() {
     return LineChart(
       LineChartData(
+        
         gridData: FlGridData(
           show: true,
           drawVerticalLine: false,
@@ -608,4 +628,125 @@ class _VitalsTrackDetailsScreenState extends State<VitalsTrackDetailsScreen> {
     );
   }
 
+}
+
+
+
+
+
+class MediktoDigitalStamp extends StatelessWidget {
+  final DateTime? dateTime;
+
+  const MediktoDigitalStamp({super.key, this.dateTime});
+
+  @override
+  Widget build(BuildContext context) {
+    final now = dateTime ?? DateTime.now();
+
+    return Opacity(
+      opacity: 0.8, // 🔹 UX: Real stamps have slight ink transparency
+      child: Transform.rotate(
+        angle: -0.15, // 🔹 UX: Slight tilt for a "hand-stamped" feel
+        child: Container(
+          width: 90,
+          height: 90,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: const Color(0xFF213598).withOpacity(0.5),
+              width: 1.5,
+            ),
+          ),
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              // 1. 🔄 Repeating "MEDIKTO" around the circle in Blue
+              const _CircularBranding(text: "MEDIKTO • "),
+
+              // 2. 🕒 Time and Date in Black (as per your request)
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    "${now.hour % 12 == 0 ? 12 : now.hour % 12}:${now.minute.toString().padLeft(2, '0')} ${now.hour >= 12 ? 'PM' : 'AM'}",
+                    style: const TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.black87, // 🔹 Black color for time
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    "${now.day} ${_getMonth(now.month)} ${now.year}",
+                    style: const TextStyle(
+                      fontSize: 8,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black54, // 🔹 Black color for date
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  String _getMonth(int month) {
+    return [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ][month - 1];
+  }
+}
+
+class _CircularBranding extends StatelessWidget {
+  final String text;
+  const _CircularBranding({required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    // 🔹 Repeating text to fill the 360-degree radius
+    String fullCircleText = text * 6;
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final double radius = (constraints.maxWidth / 2) - 5;
+        return Stack(
+          children: List.generate(fullCircleText.length, (index) {
+            double angle = (index * 2 * math.pi) / fullCircleText.length;
+
+            return Transform(
+              alignment: Alignment.center,
+              transform: Matrix4.identity()
+                ..translate(radius * math.cos(angle), radius * math.sin(angle))
+                ..rotateZ(angle + (math.pi / 2)),
+              child: Text(
+                fullCircleText[index],
+                style: const TextStyle(
+                  fontSize: 7,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF213598), // 🔹 Your Brand Blue
+                  fontFamily:
+                      'Courier', // 🔹 Monospace looks more like a real stamp
+                ),
+              ),
+            );
+          }),
+        );
+      },
+    );
+  }
 }

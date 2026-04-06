@@ -4,6 +4,7 @@ import 'package:medikto/core/utils/widgets/custom_button.dart';
 import 'package:medikto/core/utils/widgets/custom_textfields.dart';
 import 'package:medikto/features/home/add_reports/widgets/timings_widget.dart';
 import 'package:medikto/features/home/bottom_bar.dart';
+import 'package:medikto/features/reports/widgets/reports_action_sheet.dart';
 
 class AddPrescriptionFileScreen extends StatefulWidget {
   const AddPrescriptionFileScreen({super.key});
@@ -13,6 +14,23 @@ class AddPrescriptionFileScreen extends StatefulWidget {
 }
 
 class _AddPrescriptionFileScreenState extends State<AddPrescriptionFileScreen> {
+  void _showBottomSheet(BuildContext context) {
+    showModalBottomSheet(
+      backgroundColor: Colors.white,
+      constraints: BoxConstraints(maxWidth: double.infinity),
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (_) => ReportActionsSheet(
+        actions: [
+          {"icon": Icons.photo, "title": "Choose from Gallery"},
+          {"icon": Icons.camera_alt, "title": "Take a Photo"},
+          {"icon": Icons.insert_drive_file, "title": "choose PDF files"},
+        ],
+      ),
+    );
+  }
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.sizeOf(context);
@@ -50,11 +68,14 @@ class _AddPrescriptionFileScreenState extends State<AddPrescriptionFileScreen> {
                     SizedBox(height: size.height * 0.02),
 
                     /// 🔹 UPLOAD IMAGE
-                    Center(
-                      child: Image.asset(
-                        "assets/images/upload-file.png",
-                        width: size.width * 0.85,
-                        fit: BoxFit.contain,
+                    GestureDetector(
+                      onTap: () => _showBottomSheet(context),
+                      child: Center(
+                        child: Image.asset(
+                          "assets/images/upload-file.png",
+                          width: size.width * 0.85,
+                          fit: BoxFit.contain,
+                        ),
                       ),
                     ),
 
