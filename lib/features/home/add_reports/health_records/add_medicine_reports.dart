@@ -14,15 +14,20 @@ class AddMedicalReportsScreen extends StatefulWidget {
 }
 
 class _AddMedicalReportsScreenState extends State<AddMedicalReportsScreen> {
+  // Dark Mode Palette
+  static const Color darkBg = Color(0xFF121212);
+  static const Color surfaceColor = Color(0xFF1E1E1E);
+  static const Color accentCyan = Color(0xFF81DEEA);
+
   void _showBottomSheet(BuildContext context) {
     showModalBottomSheet(
-      backgroundColor: Colors.white,
-      constraints: BoxConstraints(maxWidth: double.infinity),
+      backgroundColor: surfaceColor, // Dark background for sheet
+      constraints: const BoxConstraints(maxWidth: double.infinity),
       context: context,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (_) => ReportActionsSheet(
+      builder: (_) => const ReportActionsSheet(
         actions: [
           {"icon": Icons.photo, "title": "Choose from Gallery"},
           {"icon": Icons.camera_alt, "title": "Take a Photo"},
@@ -31,14 +36,21 @@ class _AddMedicalReportsScreenState extends State<AddMedicalReportsScreen> {
       ),
     );
   }
+
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.sizeOf(context);
 
     return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: CustomAppBar(title: "Medical Reports"),
-
+      backgroundColor: darkBg,
+      appBar: CustomAppBar(
+        title: "Medical Reports",
+        backgroundColor: darkBg,
+        titleStyle: const TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20),
         child: Column(
@@ -50,7 +62,7 @@ class _AddMedicalReportsScreenState extends State<AddMedicalReportsScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    SizedBox(height: size.height * 0.016),
+                    SizedBox(height: size.height * 0.02),
 
                     /// 🔹 NAME FIELD
                     _buildTextField(
@@ -72,21 +84,21 @@ class _AddMedicalReportsScreenState extends State<AddMedicalReportsScreen> {
                           child: _buildTextField(
                             title: "Date",
                             hint: "DD.MM.YY",
-                            borderColor: Colors.black,
                             suffix: const Icon(
                               Icons.calendar_month_outlined,
-                              color: Color(0xA3555555),
+                              color: accentCyan,
+                              size: 20,
                             ),
                           ),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
                           child: _buildTextField(
-                            title: "Condition/illness",
+                            title: "Condition",
                             hint: "Critical",
                             suffix: const Icon(
                               Icons.keyboard_arrow_down_sharp,
-                              color: Color(0xA3555555),
+                              color: accentCyan,
                             ),
                           ),
                         ),
@@ -95,18 +107,88 @@ class _AddMedicalReportsScreenState extends State<AddMedicalReportsScreen> {
 
                     SizedBox(height: size.height * 0.02),
 
-                    /// 🔹 UPLOAD IMAGE
+                    /// 🔹 UPLOAD IMAGE (Tinted for Dark Mode)
+                    /// 🔹 INTERACTIVE UPLOAD AREA
                     GestureDetector(
                       onTap: () => _showBottomSheet(context),
-                      child: Center(
-                        child: Image.asset(
-                          "assets/images/upload-file.png",
-                          width: size.width * 0.85,
-                          fit: BoxFit.contain,
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 40,
+                          horizontal: 20,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF1E1E1E), // Surface Grey
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: const Color(
+                              0xFF81DEEA,
+                            ).withOpacity(0.3), // Cyan accent
+                            width: 1.5,
+                            style: BorderStyle
+                                .solid, // Note: For dashed effect, use 'dotted_border' package
+                          ),
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            // Pulsing Icon Effect
+                            Container(
+                              height: 64,
+                              width: 64,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF81DEEA).withOpacity(0.1),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.cloud_upload_outlined,
+                                color: Color(0xFF81DEEA),
+                                size: 32,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            const Text(
+                              "Upload Medical Report",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            const Text(
+                              "Support PDF, PNG, JPG (Max 5MB)",
+                              style: TextStyle(
+                                color: Colors.white38,
+                                fontSize: 12,
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+                            // Small decorative "Browse" button
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 8,
+                              ),
+                              decoration: BoxDecoration(
+                                color: const Color(
+                                  0xFF81DEEA,
+                                ).withOpacity(0.15),
+                                borderRadius: BorderRadius.circular(30),
+                              ),
+                              child: const Text(
+                                "Browse Files",
+                                style: TextStyle(
+                                  color: Color(0xFF81DEEA),
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
-
                     SizedBox(height: size.height * 0.04),
 
                     /// 🔹 ADD MEDICATION CARD
@@ -118,7 +200,7 @@ class _AddMedicalReportsScreenState extends State<AddMedicalReportsScreen> {
               ),
             ),
 
-            /// 🔹 BUTTON
+            /// 🔹 SUBMIT BUTTON
             CustomButton(
               onPressed: () => Navigator.pushAndRemoveUntil(
                 context,
@@ -127,61 +209,57 @@ class _AddMedicalReportsScreenState extends State<AddMedicalReportsScreen> {
                 ),
                 (route) => false,
               ),
-              buttonColor: Color(0xFF213598),
+              buttonColor: accentCyan,
               buttonText: "Add Report",
-              textStyle: TextStyle(
+              textStyle: const TextStyle(
                 fontSize: 18,
-                fontWeight: FontWeight.w700,
-                color: Color(0xFFffffff),
+                fontWeight: FontWeight.bold,
+                color: Colors.black, // Dark text on light button
               ),
             ),
 
-            SizedBox(height: size.height * 0.02),
+            SizedBox(height: size.height * 0.03),
           ],
         ),
       ),
     );
   }
 
-  /// 🔥 AppBar (separated → less rebuild)
-
-  /// 🔥 Reusable TextField (reduces rebuild cost)
   Widget _buildTextField({
     required String title,
     required String hint,
     int maxLines = 1,
-    Color borderColor = const Color(0xA3555555),
     Widget? suffix,
   }) {
     return AppTextFormFieldTitled(
       title: title,
       hintText: hint,
       maxLines: maxLines,
-      borderColor: borderColor,
-      focusColor: Colors.black,
-      fillColor: Colors.white,
+      borderColor: Colors.white10,
+      focusColor: accentCyan,
+      fillColor: surfaceColor,
       color: Colors.white,
       suffix: suffix,
       hintStyle: const TextStyle(
-        fontSize: 16,
+        fontSize: 14,
         fontWeight: FontWeight.w400,
-        color: Color(0xA3555555),
+        color: Colors.white24,
       ),
       titleTextStyle: const TextStyle(
-        fontSize: 18,
+        fontSize: 14,
         fontWeight: FontWeight.w500,
-        color: Color(0xFF555555),
+        color: Colors.white70,
       ),
     );
   }
 
-  /// 🔥 Add Medication Card (optimized)
   Widget _buildAddMedicationCard() {
     return Container(
-      // padding: const EdgeInsets.fromLTRB(20, 16, 20, 10),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color(0xFFFFFFFF),
-        borderRadius: BorderRadius.circular(8),
+        color: surfaceColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white.withOpacity(0.05)),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -193,26 +271,26 @@ class _AddMedicalReportsScreenState extends State<AddMedicalReportsScreen> {
                 height: 40,
                 width: 40,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFECF4FF),
+                  color: accentCyan.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Image.asset(
                   "assets/images/item2.png",
-                  color: const Color(0xFF213598),
+                  color: accentCyan,
                 ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 15),
               const Text(
                 "Add Medication",
                 style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF263238),
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
                 ),
               ),
             ],
           ),
-          const Icon(Icons.add_circle, color: Color(0xFF213598), size: 40),
+          const Icon(Icons.add_circle, color: accentCyan, size: 36),
         ],
       ),
     );

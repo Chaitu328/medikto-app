@@ -12,11 +12,22 @@ class AddSugarLevelsScreen extends StatefulWidget {
 }
 
 class _AddSugarLevelsScreenState extends State<AddSugarLevelsScreen> {
+  // Dark Mode Palette
+  static const Color darkBg = Color(0xFF121212);
+  static const Color accentCyan = Color(0xFF81DEEA);
+
   final List<FormFieldModel> slFields = [
     FormFieldModel(
       title: "RBS Value",
       hint: "Enter RBS value",
-      suffix: const Text("mg/dL"),
+      suffix: const Text(
+        "mg/dL",
+        style: TextStyle(
+          color: Colors.white54,
+          fontSize: 12,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
       isRequired: true,
     ),
     FormFieldModel(title: "", hint: "", isRow: true, isRequired: true),
@@ -27,11 +38,19 @@ class _AddSugarLevelsScreenState extends State<AddSugarLevelsScreen> {
       isRequired: false,
     ),
   ];
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: CustomAppBar(title: "Sugar Levels"),
+      backgroundColor: darkBg,
+      appBar: CustomAppBar(
+        title: "Sugar Levels",
+        backgroundColor: darkBg,
+        titleStyle: const TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
       body: SafeArea(
         child: Column(
           children: [
@@ -46,6 +65,8 @@ class _AddSugarLevelsScreenState extends State<AddSugarLevelsScreen> {
                       constraints: BoxConstraints(
                         minHeight: constraints.maxHeight,
                       ),
+                      // Since DynamicFormSection is updated for dark mode, 
+                      // it will render correctly here.
                       child: DynamicFormSection(fields: slFields),
                     ),
                   );
@@ -57,7 +78,7 @@ class _AddSugarLevelsScreenState extends State<AddSugarLevelsScreen> {
             SafeArea(
               top: false,
               child: Padding(
-                padding: EdgeInsets.fromLTRB(20, 10, 20, 20),
+                padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
                 child: RepaintBoundary(
                   child: CustomButton(
                     onPressed: () {
@@ -70,8 +91,13 @@ class _AddSugarLevelsScreenState extends State<AddSugarLevelsScreen> {
                         (route) => false,
                       );
                     },
-                    buttonText: "Add",
-                    buttonColor: Color(0xFF213598),
+                    buttonText: "Add Record",
+                    buttonColor: accentCyan, // Switched to Cyan for Dark Mode
+                    textStyle: const TextStyle(
+                      color: Colors.black, // High contrast black text on Cyan
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                    ),
                   ),
                 ),
               ),

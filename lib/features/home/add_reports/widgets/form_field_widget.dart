@@ -7,7 +7,7 @@ class FormFieldModel {
   final Widget? suffix;
   final int maxLines;
   final bool isRow;
-  final bool isRequired; // ✅ NEW
+  final bool isRequired;
 
   FormFieldModel({
     required this.title,
@@ -15,7 +15,7 @@ class FormFieldModel {
     this.suffix,
     this.maxLines = 1,
     this.isRow = false,
-    this.isRequired = false, // default optional
+    this.isRequired = false,
   });
 }
 
@@ -23,6 +23,11 @@ class DynamicFormSection extends StatelessWidget {
   final List<FormFieldModel> fields;
 
   const DynamicFormSection({super.key, required this.fields});
+
+  // Dark Mode Palette constants
+  static const Color surfaceColor = Color(0xFF1E1E1E);
+  static const Color accentCyan = Color(0xFF81DEEA);
+  static const Color borderColor = Colors.white10;
 
   @override
   Widget build(BuildContext context) {
@@ -32,83 +37,87 @@ class DynamicFormSection extends StatelessWidget {
 
         ...fields.map((field) {
           /// 🔥 Special case (Row → Date & Time)
-          ///
           if (field.isRow) {
-            return Row(
-              children: [
-                Expanded(
-                  child: AppTextFormFieldTitled(
-                    isRequired: field.isRequired,
-                    borderColor: Color(0xA3555555),
-                    focusColor: Colors.black,
-                    fillColor: Colors.white,
-                    color: Colors.white,
-                    hintStyle: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w400,
-                      color: Color(0xA3555555),
-                    ),
-                    titleTextStyle: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w500,
-                      color: Color(0xFF555555),
-                    ),
-                    hintText: "DD.MM.YY",
-                    title: "Date",
-                    suffix: Icon(
-                      Icons.calendar_month_outlined,
-                      color: Color(0xA3555555),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: AppTextFormFieldTitled(
-                    isRequired: field.isRequired,
-                    borderColor: Color(0xA3555555),
-                    focusColor: Colors.black,
-                    fillColor: Colors.white,
-                    color: Colors.white,
-                    hintStyle: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w400,
-                      color: Color(0xA3555555),
-                    ),
-                    titleTextStyle: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w500,
-                      color: Color(0xFF555555),
-                    ),
-                    hintText: "00:00",
-                    title: "Time",
-                    suffix: Icon(
-                      Icons.keyboard_arrow_down_sharp,
-                      color: Color(0xA3555555),
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: AppTextFormFieldTitled(
+                      isRequired: field.isRequired,
+                      borderColor: borderColor,
+                      focusColor: accentCyan,
+                      fillColor: surfaceColor,
+                      color: Colors.white,
+                      hintStyle: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w400,
+                        color: Colors.white24,
+                      ),
+                      titleTextStyle: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.white70,
+                      ),
+                      hintText: "DD.MM.YY",
+                      title: "Date",
+                      suffix: const Icon(
+                        Icons.calendar_month_outlined,
+                        color: accentCyan,
+                        size: 20,
+                      ),
                     ),
                   ),
-                ),
-              ],
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: AppTextFormFieldTitled(
+                      isRequired: field.isRequired,
+                      borderColor: borderColor,
+                      focusColor: accentCyan,
+                      fillColor: surfaceColor,
+                      color: Colors.white,
+                      hintStyle: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.white24,
+                      ),
+                      titleTextStyle: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.white70,
+                      ),
+                      hintText: "00:00",
+                      title: "Time",
+                      suffix: const Icon(
+                        Icons.access_time_rounded,
+                        color: accentCyan,
+                        size: 20,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             );
           }
 
           /// 🔥 Normal Field
           return Padding(
-            padding: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.only(bottom: 6),
             child: AppTextFormFieldTitled(
               isRequired: field.isRequired,
-              borderColor: Color(0xA3555555),
-              focusColor: Colors.black,
-              fillColor: Colors.white,
+              borderColor: borderColor,
+              focusColor: accentCyan,
+              fillColor: surfaceColor,
               color: Colors.white,
-              hintStyle: TextStyle(
-                fontSize: 16,
+              hintStyle: const TextStyle(
+                fontSize: 14,
                 fontWeight: FontWeight.w400,
-                color: Color(0xA3555555),
+                color: Colors.white24,
               ),
-              titleTextStyle: TextStyle(
-                fontSize: 18,
+              titleTextStyle: const TextStyle(
+                fontSize: 14,
                 fontWeight: FontWeight.w500,
-                color: Color(0xFF555555),
+                color: Colors.white70,
               ),
               title: field.title,
               hintText: field.hint,
@@ -118,7 +127,7 @@ class DynamicFormSection extends StatelessWidget {
           );
         }).toList(),
 
-        const SizedBox(height: 40),
+        const SizedBox(height: 20),
       ],
     );
   }

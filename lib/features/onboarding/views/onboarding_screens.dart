@@ -15,6 +15,10 @@ class _OnboardingScreensState extends State<OnboardingScreens> {
   final PageController _controller = PageController();
   final ValueNotifier<int> currentIndex = ValueNotifier(0);
 
+  // Theme Colors consistent with your new design
+  static const Color darkBg = Color(0xFF121212);
+  static const Color accentCyan = Color(0xFF81DEEA);
+
   final List<Map<String, String>> data = const [
     {
       "image": "assets/images/vault-rafiki.png",
@@ -36,8 +40,6 @@ class _OnboardingScreensState extends State<OnboardingScreens> {
   @override
   void initState() {
     super.initState();
-
-    // 🔥 Preload images (removes lag on first swipe)
     WidgetsBinding.instance.addPostFrameCallback((_) {
       for (var item in data) {
         precacheImage(AssetImage(item["image"]!), context);
@@ -61,7 +63,7 @@ class _OnboardingScreensState extends State<OnboardingScreens> {
     } else {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => OverrallFeaturesScreen()),
+        MaterialPageRoute(builder: (_) => const OverrallFeaturesScreen()),
       );
     }
   }
@@ -75,18 +77,17 @@ class _OnboardingScreensState extends State<OnboardingScreens> {
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.sizeOf(context); // ✅ cache
-    return SafeArea(
-      top: false,
-      bottom: true,
-      child: AnnotatedRegion<SystemUiOverlayStyle>(
-        value: const SystemUiOverlayStyle(
-          statusBarColor: Colors.white,
-          statusBarIconBrightness: Brightness.dark,
-        ),
-        child: Scaffold(
-          backgroundColor: Colors.white,
-          body: Padding(
+    final size = MediaQuery.sizeOf(context);
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent, // Immersive look
+        statusBarIconBrightness: Brightness.light, // White icons for Dark Mode
+        systemNavigationBarColor: darkBg,
+      ),
+      child: Scaffold(
+        backgroundColor: darkBg, // Deep Charcoal
+        body: SafeArea(
+          child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -106,6 +107,8 @@ class _OnboardingScreensState extends State<OnboardingScreens> {
                     itemCount: data.length,
                     onPageChanged: (index) => currentIndex.value = index,
                     itemBuilder: (_, index) {
+                      // Note: Ensure OnboardingPage widget internally 
+                      // uses white text for titles and descriptions.
                       return OnboardingPage(
                         index: index,
                         data: data[index],
@@ -137,7 +140,11 @@ class _OnboardingScreensState extends State<OnboardingScreens> {
             onTap: _skip,
             child: const Text(
               "Skip",
-              style: TextStyle(fontSize: 16, color: Color(0xFF8B8B8B)),
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.white38, // Muted white for skip
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ),
           const Spacer(),
@@ -145,18 +152,25 @@ class _OnboardingScreensState extends State<OnboardingScreens> {
             onTap: _next,
             child: Container(
               alignment: Alignment.center,
-              height: size.height * 0.046,
-              width: size.width * 0.24,
+              height: size.height * 0.05,
+              width: size.width * 0.28,
               decoration: BoxDecoration(
-                color: const Color(0xFF213598),
+                color: accentCyan, // Brand Cyan
                 borderRadius: BorderRadius.circular(30),
+                boxShadow: [
+                  BoxShadow(
+                    color: accentCyan.withOpacity(0.2),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
               child: const Text(
                 "Next",
                 style: TextStyle(
                   fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black, // High contrast black text on Cyan
                 ),
               ),
             ),

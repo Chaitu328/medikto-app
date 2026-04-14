@@ -12,17 +12,27 @@ class AddBloodPressureScreen extends StatefulWidget {
 }
 
 class _AddBloodPressureScreenState extends State<AddBloodPressureScreen> {
+  // Theme Palette
+  static const Color darkBg = Color(0xFF121212);
+  static const Color accentCyan = Color(0xFF81DEEA);
+
   final List<FormFieldModel> bpFields = [
     FormFieldModel(
       title: "Systolic (max 120)",
       hint: "100",
-      suffix: const Text("mmHg"),
+      suffix: const Text(
+        "mmHg",
+        style: TextStyle(color: Colors.white54, fontSize: 12),
+      ),
       isRequired: true,
     ),
     FormFieldModel(
       title: "Diastolic (max 80)",
-      hint: "100",
-      suffix: const Text("mmHg"),
+      hint: "80",
+      suffix: const Text(
+        "mmHg",
+        style: TextStyle(color: Colors.white54, fontSize: 12),
+      ),
       isRequired: true,
     ),
     FormFieldModel(
@@ -38,11 +48,19 @@ class _AddBloodPressureScreenState extends State<AddBloodPressureScreen> {
       isRequired: false,
     ),
   ];
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: CustomAppBar(title: "Blood Pressure"),
+      backgroundColor: darkBg,
+      appBar: CustomAppBar(
+        title: "Blood Pressure",
+        backgroundColor: darkBg,
+        titleStyle: const TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
       body: SafeArea(
         child: Column(
           children: [
@@ -57,6 +75,8 @@ class _AddBloodPressureScreenState extends State<AddBloodPressureScreen> {
                       constraints: BoxConstraints(
                         minHeight: constraints.maxHeight,
                       ),
+                      // NOTE: Ensure DynamicFormSection/FormFieldWidget 
+                      // internally handles Dark Mode colors for TextFields
                       child: DynamicFormSection(fields: bpFields),
                     ),
                   );
@@ -68,7 +88,7 @@ class _AddBloodPressureScreenState extends State<AddBloodPressureScreen> {
             SafeArea(
               top: false,
               child: Padding(
-                padding: EdgeInsets.fromLTRB(20, 10, 20, 20),
+                padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
                 child: RepaintBoundary(
                   child: CustomButton(
                     onPressed: () => Navigator.pushAndRemoveUntil(
@@ -78,8 +98,13 @@ class _AddBloodPressureScreenState extends State<AddBloodPressureScreen> {
                       ),
                       (route) => false,
                     ),
-                    buttonText: "Add",
-                    buttonColor: Color(0xFF213598),
+                    buttonText: "Add Record",
+                    buttonColor: accentCyan, // Brighter for Dark Mode
+                    textStyle: const TextStyle(
+                      color: Colors.black, // High contrast
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                    ),
                   ),
                 ),
               ),
@@ -89,8 +114,4 @@ class _AddBloodPressureScreenState extends State<AddBloodPressureScreen> {
       ),
     );
   }
-
-  /// 🔥 AppBar optimized
 }
-
-/// 🔥 Extracted Form Section (prevents rebuild of whole screen)

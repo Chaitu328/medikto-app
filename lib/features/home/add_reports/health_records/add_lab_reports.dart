@@ -13,15 +13,20 @@ class AddLabReportsScreen extends StatefulWidget {
 }
 
 class _AddLabReportsScreenState extends State<AddLabReportsScreen> {
+  // Dark Mode Palette
+  static const Color darkBg = Color(0xFF121212);
+  static const Color surfaceColor = Color(0xFF1E1E1E);
+  static const Color accentCyan = Color(0xFF81DEEA);
+
   void _showBottomSheet(BuildContext context) {
     showModalBottomSheet(
-      backgroundColor: Colors.white,
-      constraints: BoxConstraints(maxWidth: double.infinity),
+      backgroundColor: surfaceColor,
+      constraints: const BoxConstraints(maxWidth: double.infinity),
       context: context,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (_) => ReportActionsSheet(
+      builder: (_) => const ReportActionsSheet(
         actions: [
           {"icon": Icons.photo, "title": "Choose from Gallery"},
           {"icon": Icons.camera_alt, "title": "Take a Photo"},
@@ -30,13 +35,21 @@ class _AddLabReportsScreenState extends State<AddLabReportsScreen> {
       ),
     );
   }
+
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.sizeOf(context);
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: CustomAppBar(title: "Lab Reports"),
 
+    return Scaffold(
+      backgroundColor: darkBg,
+      appBar: CustomAppBar(
+        title: "Lab Reports",
+        backgroundColor: darkBg,
+        titleStyle: const TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20),
         child: Column(
@@ -48,38 +61,78 @@ class _AddLabReportsScreenState extends State<AddLabReportsScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    SizedBox(height: size.height * 0.016),
+                    SizedBox(height: size.height * 0.02),
 
                     /// 🔹 NAME FIELD
                     _buildTextField(
                       title: "Lab Report Name",
-                      hint: "Enter medicine report name",
+                      hint: "Enter lab report name (e.g. Blood Panel)",
                     ),
 
                     /// 🔹 DESCRIPTION
                     _buildTextField(
                       title: "Description",
-                      hint: "Enter your medicine description, others",
+                      hint: "Enter your report description, clinic name, etc.",
                       maxLines: 3,
                     ),
 
                     SizedBox(height: size.height * 0.02),
 
-                    /// 🔹 UPLOAD IMAGE
+                    /// 🔹 INTERACTIVE UPLOAD AREA
                     GestureDetector(
                       onTap: () => _showBottomSheet(context),
-                      child: Center(
-                        child: Image.asset(
-                          "assets/images/upload-file.png",
-                          width: size.width * 0.85,
-                          fit: BoxFit.contain,
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 30,
+                          horizontal: 20,
+                        ),
+                        decoration: BoxDecoration(
+                          color: surfaceColor,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: accentCyan.withOpacity(0.2),
+                            width: 1.5,
+                          ),
+                        ),
+                        child: Column(
+                          children: [
+                            Container(
+                              height: 50,
+                              width: 50,
+                              decoration: BoxDecoration(
+                                color: accentCyan.withOpacity(0.1),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.cloud_upload_outlined,
+                                color: accentCyan,
+                                size: 28,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            const Text(
+                              "Upload Lab Report",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const Text(
+                              "PDF, PNG or JPG (Max 5MB)",
+                              style: TextStyle(
+                                color: Colors.white38,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
 
                     SizedBox(height: size.height * 0.04),
 
-                    /// 🔹 ADD MEDICATION CARD
+                    /// 🔹 ADD LAB CARD
                     _buildAddLabReportCard(),
 
                     SizedBox(height: size.height * 0.05),
@@ -88,7 +141,7 @@ class _AddLabReportsScreenState extends State<AddLabReportsScreen> {
               ),
             ),
 
-            /// 🔹 BUTTON
+            /// 🔹 SUBMIT BUTTON
             CustomButton(
               onPressed: () => Navigator.pushAndRemoveUntil(
                 context,
@@ -97,16 +150,16 @@ class _AddLabReportsScreenState extends State<AddLabReportsScreen> {
                 ),
                 (route) => false,
               ),
-              buttonColor: Color(0xFF213598),
-              buttonText: "Add Report",
-              textStyle: TextStyle(
+              buttonColor: accentCyan,
+              buttonText: "Add Lab Report",
+              textStyle: const TextStyle(
                 fontSize: 18,
-                fontWeight: FontWeight.w700,
-                color: Color(0xFFffffff),
+                fontWeight: FontWeight.bold,
+                color: Colors.black, // Dark text on light button
               ),
             ),
 
-            SizedBox(height: size.height * 0.02),
+            SizedBox(height: size.height * 0.03),
           ],
         ),
       ),
@@ -117,38 +170,37 @@ class _AddLabReportsScreenState extends State<AddLabReportsScreen> {
     required String title,
     required String hint,
     int maxLines = 1,
-    Color borderColor = const Color(0xA3555555),
     Widget? suffix,
   }) {
     return AppTextFormFieldTitled(
       title: title,
       hintText: hint,
       maxLines: maxLines,
-      borderColor: borderColor,
-      focusColor: Colors.black,
-      fillColor: Colors.white,
+      borderColor: Colors.white10,
+      focusColor: accentCyan,
+      fillColor: surfaceColor,
       color: Colors.white,
       suffix: suffix,
       hintStyle: const TextStyle(
-        fontSize: 16,
+        fontSize: 14,
         fontWeight: FontWeight.w400,
-        color: Color(0xA3555555),
+        color: Colors.white24,
       ),
       titleTextStyle: const TextStyle(
-        fontSize: 18,
+        fontSize: 14,
         fontWeight: FontWeight.w500,
-        color: Color(0xFF555555),
+        color: Colors.white70,
       ),
     );
   }
 
-  /// 🔥 Add Medication Card (optimized)
   Widget _buildAddLabReportCard() {
     return Container(
-      // padding: const EdgeInsets.fromLTRB(20, 16, 20, 10),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color(0xFFFFFFFF),
-        borderRadius: BorderRadius.circular(8),
+        color: surfaceColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white.withOpacity(0.05)),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -160,26 +212,23 @@ class _AddLabReportsScreenState extends State<AddLabReportsScreen> {
                 height: 40,
                 width: 40,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFECF4FF),
+                  color: accentCyan.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Image.asset(
-                  "assets/images/item2.png",
-                  color: const Color(0xFF213598),
-                ),
+                child: const Icon(Icons.biotech_outlined, color: accentCyan),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 15),
               const Text(
-                "Add Lab Report",
+                "Add Lab Result",
                 style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF263238),
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
                 ),
               ),
             ],
           ),
-          const Icon(Icons.add_circle, color: Color(0xFF213598), size: 40),
+          const Icon(Icons.add_circle, color: accentCyan, size: 36),
         ],
       ),
     );

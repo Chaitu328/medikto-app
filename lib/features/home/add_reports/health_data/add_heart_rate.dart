@@ -12,8 +12,24 @@ class AddHeartRateScreen extends StatefulWidget {
 }
 
 class _AddHeartRateScreenState extends State<AddHeartRateScreen> {
+  // Theme Palette
+  static const Color darkBg = Color(0xFF121212);
+  static const Color accentCyan = Color(0xFF81DEEA);
+
   final List<FormFieldModel> hrFields = [
-    FormFieldModel(title: "Heart Rate", hint: "72", suffix: const Text("BPM"),isRequired: true),
+    FormFieldModel(
+      title: "Heart Rate",
+      hint: "72",
+      suffix: const Text(
+        "BPM",
+        style: TextStyle(
+          color: Colors.white54,
+          fontSize: 12,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      isRequired: true,
+    ),
     FormFieldModel(title: "", hint: "", isRow: true, isRequired: true),
     FormFieldModel(
       title: "Notes",
@@ -21,11 +37,19 @@ class _AddHeartRateScreenState extends State<AddHeartRateScreen> {
       maxLines: 3,
     ),
   ];
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: CustomAppBar(title: "Heart Rate"),
+      backgroundColor: darkBg,
+      appBar: CustomAppBar(
+        title: "Heart Rate",
+        backgroundColor: darkBg,
+        titleStyle: const TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
       body: SafeArea(
         child: Column(
           children: [
@@ -40,6 +64,7 @@ class _AddHeartRateScreenState extends State<AddHeartRateScreen> {
                       constraints: BoxConstraints(
                         minHeight: constraints.maxHeight,
                       ),
+                      // DynamicFormSection now uses our dark textfield logic
                       child: DynamicFormSection(fields: hrFields),
                     ),
                   );
@@ -51,7 +76,7 @@ class _AddHeartRateScreenState extends State<AddHeartRateScreen> {
             SafeArea(
               top: false,
               child: Padding(
-                padding: EdgeInsets.fromLTRB(20, 10, 20, 20),
+                padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
                 child: RepaintBoundary(
                   child: CustomButton(
                     onPressed: () {
@@ -64,8 +89,13 @@ class _AddHeartRateScreenState extends State<AddHeartRateScreen> {
                         (route) => false,
                       );
                     },
-                    buttonText: "Add",
-                    buttonColor: Color(0xFF213598),
+                    buttonText: "Add Record",
+                    buttonColor: accentCyan, // High visibility Cyan
+                    textStyle: const TextStyle(
+                      color: Colors.black, // Dark text for contrast
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                    ),
                   ),
                 ),
               ),
@@ -75,5 +105,4 @@ class _AddHeartRateScreenState extends State<AddHeartRateScreen> {
       ),
     );
   }
-
- }
+}

@@ -15,26 +15,34 @@ class AddVaccinationReportsScreen extends StatefulWidget {
 
 class _AddVaccinationReportsScreenState
     extends State<AddVaccinationReportsScreen> {
+  // Theme Palette
+  static const Color darkBg = Color(0xFF121212);
+  static const Color surfaceColor = Color(0xFF1E1E1E);
+  static const Color accentCyan = Color(0xFF81DEEA);
+
   final List<FormFieldModel> vrFields = [
-    FormFieldModel(title: "Vaccine Name", hint: "Enter vaccine name"),
+    FormFieldModel(
+      title: "Vaccine Name",
+      hint: "Enter vaccine name",
+      isRequired: true,
+    ),
     FormFieldModel(
       title: "Description",
       hint: "Enter your vaccine description, others",
       maxLines: 3,
     ),
-    FormFieldModel(title: "", hint: "", isRow: true),
+    FormFieldModel(title: "", hint: "", isRow: true, isRequired: true),
   ];
-
 
   void _showBottomSheet(BuildContext context) {
     showModalBottomSheet(
-      backgroundColor: Colors.white,
-      constraints: BoxConstraints(maxWidth: double.infinity),
+      backgroundColor: surfaceColor,
+      constraints: const BoxConstraints(maxWidth: double.infinity),
       context: context,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (_) => ReportActionsSheet(
+      builder: (_) => const ReportActionsSheet(
         actions: [
           {"icon": Icons.photo, "title": "Choose from Gallery"},
           {"icon": Icons.camera_alt, "title": "Take a Photo"},
@@ -43,45 +51,91 @@ class _AddVaccinationReportsScreenState
       ),
     );
   }
+
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.sizeOf(context);
 
     return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: CustomAppBar(title: "Vaccination Reports"),
+      backgroundColor: darkBg,
+      appBar: CustomAppBar(
+        title: "Vaccination Reports",
+        backgroundColor: darkBg,
+        titleStyle: const TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20),
         child: Column(
           children: [
-            /// 🔹 FORM AREA
             Expanded(
               child: SingleChildScrollView(
                 physics: const BouncingScrollPhysics(),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    SizedBox(height: size.height * 0.016),
+                    SizedBox(height: size.height * 0.02),
 
+                    /// 🔹 FORM FIELDS (Automatically use dark theme logic)
                     DynamicFormSection(fields: vrFields),
 
-                    // SizedBox(height: size.height * 0.02),
-
-                    /// 🔹 UPLOAD IMAGE
+                    /// 🔹 INTERACTIVE UPLOAD AREA
                     GestureDetector(
                       onTap: () => _showBottomSheet(context),
-                      child: Center(
-                        child: Image.asset(
-                          "assets/images/upload-file.png",
-                          width: size.width * 0.85,
-                          fit: BoxFit.contain,
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 30,
+                          horizontal: 20,
+                        ),
+                        decoration: BoxDecoration(
+                          color: surfaceColor,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: accentCyan.withOpacity(0.2),
+                            width: 1.5,
+                          ),
+                        ),
+                        child: Column(
+                          children: [
+                            Container(
+                              height: 50,
+                              width: 50,
+                              decoration: BoxDecoration(
+                                color: accentCyan.withOpacity(0.1),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.cloud_upload_outlined,
+                                color: accentCyan,
+                                size: 28,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            const Text(
+                              "Upload Vaccination Certificate",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const Text(
+                              "PDF or Image (Max 5MB)",
+                              style: TextStyle(
+                                color: Colors.white38,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
 
                     SizedBox(height: size.height * 0.04),
 
-                    /// 🔹 ADD MEDICATION CARD
+                    /// 🔹 ADD VACCINATION CARD
                     _buildAddVaccinationCard(),
 
                     SizedBox(height: size.height * 0.05),
@@ -90,7 +144,7 @@ class _AddVaccinationReportsScreenState
               ),
             ),
 
-            /// 🔹 BUTTON
+            /// 🔹 SUBMIT BUTTON
             CustomButton(
               onPressed: () => Navigator.pushAndRemoveUntil(
                 context,
@@ -99,16 +153,16 @@ class _AddVaccinationReportsScreenState
                 ),
                 (route) => false,
               ),
-              buttonColor: Color(0xFF213598),
+              buttonColor: accentCyan,
               buttonText: "Add Report",
-              textStyle: TextStyle(
+              textStyle: const TextStyle(
                 fontSize: 18,
-                fontWeight: FontWeight.w700,
-                color: Color(0xFFffffff),
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
               ),
             ),
 
-            SizedBox(height: size.height * 0.02),
+            SizedBox(height: size.height * 0.03),
           ],
         ),
       ),
@@ -117,10 +171,11 @@ class _AddVaccinationReportsScreenState
 
   Widget _buildAddVaccinationCard() {
     return Container(
-      // padding: const EdgeInsets.fromLTRB(20, 16, 20, 10),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color(0xFFFFFFFF),
-        borderRadius: BorderRadius.circular(8),
+        color: surfaceColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white.withOpacity(0.05)),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -132,26 +187,23 @@ class _AddVaccinationReportsScreenState
                 height: 40,
                 width: 40,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFECF4FF),
+                  color: accentCyan.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Image.asset(
-                  "assets/images/item2.png",
-                  color: const Color(0xFF213598),
-                ),
+                child: const Icon(Icons.vaccines_outlined, color: accentCyan),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 15),
               const Text(
-                "Add Vaccination",
+                "Add Dose Info",
                 style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF263238),
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
                 ),
               ),
             ],
           ),
-          const Icon(Icons.add_circle, color: Color(0xFF213598), size: 40),
+          const Icon(Icons.add_circle, color: accentCyan, size: 36),
         ],
       ),
     );

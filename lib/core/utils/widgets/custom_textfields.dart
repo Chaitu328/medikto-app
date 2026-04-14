@@ -95,7 +95,7 @@ class AppTextFormFieldTitled extends StatelessWidget {
                       const TextSpan(
                         text: " *",
                         style: TextStyle(
-                          color: Color(0xFFEF3235), // 🔴 RED STAR
+                          color: Color(0xFFFF8A80), // 🔴 RED STAR
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -126,7 +126,8 @@ class AppTextFormFieldTitled extends StatelessWidget {
                     TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w500,
-                      color: Color(0xFF000000),
+                      color: Color(0xFFffffff),
+                      // color: Color(0xFF000000),
                     ), // Apply textStyle for the input text
                 decoration: InputDecoration(
                   contentPadding:

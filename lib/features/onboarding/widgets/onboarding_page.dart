@@ -10,6 +10,7 @@ class OnboardingPage extends StatelessWidget {
   final PageController controller;
 
   const OnboardingPage({
+    super.key, // Added super.key for best practice
     required this.index,
     required this.data,
     required this.size,
@@ -20,10 +21,13 @@ class OnboardingPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Brand colors for consistency
+    const Color accentCyan = Color(0xFF81DEEA);
+
     return Column(
       children: [
         index == 1 || index == 2
-            ? SizedBox(height: size.height * 0.06)
+            ? SizedBox(height: size.height * 0.02)
             : const SizedBox.shrink(),
 
         index == 1 || index == 2
@@ -38,7 +42,11 @@ class OnboardingPage extends StatelessWidget {
                       );
                     }
                   },
-                  child: Icon(Icons.arrow_back_ios, size: 24),
+                  child: const Icon(
+                    Icons.arrow_back_ios,
+                    size: 24,
+                    color: Colors.white, // Changed for Dark Mode
+                  ),
                 ),
               )
             : const SizedBox.shrink(),
@@ -53,7 +61,7 @@ class OnboardingPage extends StatelessWidget {
           style: const TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.w500,
-            color: Color(0xFF263238),
+            color: Colors.white, // Changed for Dark Mode
             letterSpacing: 0.5,
           ),
         ),
@@ -66,7 +74,7 @@ class OnboardingPage extends StatelessWidget {
           style: const TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w400,
-            color: Color(0xFF8B8B8B),
+            color: Colors.white70, // Changed for Dark Mode (softer white)
           ),
         ),
 
@@ -88,8 +96,9 @@ class OnboardingPage extends StatelessWidget {
                   width: current == i ? 26 : 10,
                   decoration: BoxDecoration(
                     color: current == i
-                        ? const Color(0xFF213598)
-                        : const Color(0xFFDDDDDD),
+                        ? accentCyan // Active indicator changed to Cyan
+                        : Colors
+                              .white24, // Inactive indicator changed to muted white
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),

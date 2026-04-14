@@ -10,34 +10,44 @@ class ChangePasswordScreen extends StatefulWidget {
 }
 
 class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
+  // Theme Colors consistent with Dashboard and Profile
+  static const Color darkBg = Color(0xFF121212);
+  static const Color surfaceColor = Color(0xFF1E1E1E);
+  static const Color accentCyan = Color(0xFF81DEEA);
+
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.sizeOf(context);
+    
     return Scaffold(
-      backgroundColor: const Color(0xFFF9F9F9),
+      backgroundColor: darkBg,
       appBar: AppBar(
         titleSpacing: 0,
         toolbarHeight: 60,
-        backgroundColor: Colors.white,
+        backgroundColor: darkBg,
         elevation: 0,
         surfaceTintColor: Colors.transparent,
         scrolledUnderElevation: 0,
         leading: GestureDetector(
           onTap: () => Navigator.pop(context),
-          child: const Icon(Icons.arrow_back_ios_new, color: Color(0xFF3D3D3D)),
+          child: const Icon(
+            Icons.arrow_back_ios_new,
+            color: Colors.white,
+            size: 20,
+          ),
         ),
         actions: const [
           Padding(
             padding: EdgeInsets.only(right: 20),
-            child: Icon(Icons.info_outline_rounded, color: Color(0xFF3D3D3D)),
+            child: Icon(Icons.info_outline_rounded, color: Colors.white70),
           ),
         ],
         title: const Text(
-          "Profile",
+          "Change Password",
           style: TextStyle(
             fontSize: 20,
-            fontWeight: FontWeight.w500,
-            color: Color(0xFF3D3D3D),
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
           ),
         ),
       ),
@@ -49,36 +59,45 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  SizedBox(height: size.height * 0.016),
+                  SizedBox(height: size.height * 0.02),
                   const Text(
-                    "Password",
+                    "Security Update",
                     style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w500,
-                      color: Color(0xFF263238),
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    "Choose a strong password to protect your health data.",
+                    style: TextStyle(fontSize: 14, color: Colors.white54,
                     ),
                   ),
 
-                  SizedBox(height: size.height * 0.01),
+                  SizedBox(height: size.height * 0.04),
 
                   _buildField("New Password", "Enter your new password"),
-                  SizedBox(height: size.height * 0.005),
+                  const SizedBox(height: 20),
 
-                  _buildField("Confirm Password", "Renter your new password"),
+                  _buildField("Confirm Password", "Re-enter your new password"),
                 ],
               ),
             ),
+            
+            // Bottom Action Button
             CustomButton(
               onPressed: () => Navigator.pop(context),
-              buttonColor: const Color(0xFF213598),
+              buttonColor: accentCyan,
               buttonText: "Save Changes",
               textStyle: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w500,
-                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color:
+                    Colors.black, // Dark text on light button for high contrast
               ),
             ),
-            SizedBox(height: size.height * 0.02),
+            SizedBox(height: size.height * 0.04), // Safe area bottom padding
           ],
         ),
       ),
@@ -89,19 +108,20 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     return AppTextFormFieldTitled(
       title: title,
       hintText: hint,
-      focusColor: Colors.black,
-      fillColor: Colors.white,
+      obscureText: true, // Standard for password fields
+      focusColor: accentCyan,
+      fillColor: surfaceColor,
       color: Colors.white,
-      borderColor: const Color(0xA3555555),
+      borderColor: Colors.white.withOpacity(0.1),
       hintStyle: const TextStyle(
         fontSize: 16,
         fontWeight: FontWeight.w400,
-        color: Color(0xA3555555),
+        color: Colors.white24,
       ),
       titleTextStyle: const TextStyle(
-        fontSize: 18,
-        fontWeight: FontWeight.w500,
-        color: Color(0xFF555555),
+        fontSize: 14,
+        fontWeight: FontWeight.bold,
+        color: Colors.white70,
       ),
     );
   }

@@ -11,45 +11,46 @@ class EditProfileScreen extends StatefulWidget {
 }
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
-
+  // Theme Colors
+  static const Color darkBg = Color(0xFF121212);
+  static const Color surfaceColor = Color(0xFF1E1E1E);
+  static const Color accentCyan = Color(0xFF81DEEA);
+  static const Color primaryBlue = Color(0xFF213598);
 
   @override
   Widget build(BuildContext context) {
     final Size screenSize = MediaQuery.sizeOf(context);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF9F9F9),
+      backgroundColor: darkBg,
       appBar: AppBar(
         titleSpacing: 0,
         toolbarHeight: 60,
-        backgroundColor: Colors.white,
+        backgroundColor: darkBg,
         elevation: 0,
         surfaceTintColor: Colors.transparent,
         scrolledUnderElevation: 0,
         leading: GestureDetector(
           onTap: () => Navigator.pop(context),
-          child: const Icon(Icons.arrow_back_ios_new, color: Color(0xFF3D3D3D)),
+          child: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
         ),
         actions: const [
           Padding(
             padding: EdgeInsets.only(right: 20),
-            child: Icon(Icons.info_outline_rounded, color: Color(0xFF3D3D3D)),
+            child: Icon(Icons.info_outline_rounded, color: Colors.white),
           ),
         ],
         title: const Text(
           "Edit Profile",
           style: TextStyle(
             fontSize: 20,
-            fontWeight: FontWeight.w500,
-            color: Color(0xFF3D3D3D),
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
           ),
         ),
       ),
-
-      /// 🔥 Stack kept same (UI unchanged)
       body: Stack(
         children: [
-          /// 🔥 Smooth scroll
           SingleChildScrollView(
             physics: const BouncingScrollPhysics(),
             child: Padding(
@@ -59,7 +60,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 children: [
                   SizedBox(height: screenSize.height * 0.016),
 
-                  /// 🔹 Profile Image
+                  /// 🔹 Profile Image (Dark Mode Styling)
                   Align(
                     alignment: Alignment.center,
                     child: Stack(
@@ -68,36 +69,36 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           height: 120,
                           width: 120,
                           decoration: BoxDecoration(
-                            color: Colors.grey.shade200,
+                            color: surfaceColor,
                             shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white10, width: 2),
                           ),
-                          child: Icon(
+                          child: const Icon(
                             Icons.person,
                             size: 60,
-                            color: Colors.grey.shade400,
+                            color: Colors.white24,
                           ),
                         ),
                         Positioned(
-                          bottom: 10,
-                          right: 0,
+                          bottom: 5,
+                          right: 5,
                           child: Container(
-                            height: 30,
-                            width: 30,
+                            height: 34,
+                            width: 34,
                             decoration: BoxDecoration(
-                              color: Colors.white,
+                              color: accentCyan,
                               shape: BoxShape.circle,
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.grey.shade100,
-                                  blurRadius: 4,
-                                  offset: const Offset(0, 2),
+                                  color: Colors.black.withOpacity(0.3),
+                                  blurRadius: 5,
                                 ),
                               ],
                             ),
                             child: const Icon(
-                              Icons.edit,
-                              size: 16,
-                              color: Color(0xFF7D7D7D),
+                              Icons.camera_alt,
+                              size: 18,
+                              color: Colors.black,
                             ),
                           ),
                         ),
@@ -111,49 +112,54 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     "Basic Details",
                     style: TextStyle(
                       fontSize: 22,
-                      fontWeight: FontWeight.w500,
-                      color: Color(0xFF263238),
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
                     ),
                   ),
 
-                  SizedBox(height: screenSize.height * 0.01),
+                  SizedBox(height: screenSize.height * 0.02),
 
-                  /// 🔹 Fields
+                  /// 🔹 Input Fields
                   _buildField(
                     title: "First Name",
                     hint: "Enter your first name",
                   ),
 
+                  const SizedBox(height: 15),
+
                   AppTextFormFieldTitled(
+                    
                     title: "Contact",
-                    hintText: "",
-                    focusColor: Colors.black,
-                    fillColor: Colors.white,
+                    hintText: "Enter phone number",
+                    focusColor: accentCyan,
+                    fillColor: surfaceColor,
                     color: Colors.white,
                     textInputType: TextInputType.phone,
-
-                    prefix: Text(
-                      "+91",
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w400,
-                        color: Color(0xFF555555),
+                    prefix: const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 10),
+                      child: Text(
+                        "+91",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: accentCyan,
+                        ),
                       ),
                     ),
-                    borderColor: const Color(0xA3555555),
+                    borderColor: Colors.white10,
                     hintStyle: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w400,
-                      color: Color(0xA3555555),
+                      color: Colors.white24,
                     ),
                     titleTextStyle: const TextStyle(
-                      fontSize: 18,
+                      fontSize: 14,
                       fontWeight: FontWeight.w500,
-                      color: Color(0xFF555555),
+                      color: Colors.white70,
                     ),
                   ),
-                  SizedBox(height: screenSize.height * 0.005),
-
+                  
+                  const SizedBox(height: 15),
 
                   _buildField(
                     title: "Blood Group",
@@ -161,56 +167,69 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     suffixIcon: Icons.keyboard_arrow_down_rounded,
                   ),
 
+                  const SizedBox(height: 15),
+
                   /// 🔹 Age + Gender
                   Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildField(title: "Age", hint: "Age", width: 160),
-                      SizedBox(width: screenSize.width * 0.05),
-                      GenderSection()
+                      Expanded(
+                        flex: 1,
+                        child: _buildField(title: "Age", hint: "Age"),
+                      ),
+                      const SizedBox(width: 15),
+                      const Expanded(
+                        flex: 2,
+                        child:
+                            GenderSection(), // Ensure internal widget supports Dark Mode
+                      )
                     ],
                   ),
+
+                  const SizedBox(height: 15),
 
                   /// 🔹 Height + Weight
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      _buildField(
-                        title: "Height",
-                        hint: "Cm",
-                        width: 160,
-                        suffixIcon: Icons.keyboard_arrow_down_outlined,
+                      Expanded(
+                        child: _buildField(
+                          title: "Height",
+                          hint: "Cm",
+                          suffixIcon: Icons.height,
+                        ),
                       ),
-                      SizedBox(width: screenSize.width * 0.02),
-                      _buildField(
-                        title: "Weight",
-                        hint: "Kg's",
-                        width: 160,
-                        suffixIcon: Icons.keyboard_arrow_down_outlined,
+                      const SizedBox(width: 15),
+                      Expanded(
+                        child: _buildField(
+                          title: "Weight",
+                          hint: "Kg's",
+                          suffixIcon: Icons.monitor_weight_outlined,
+                        ),
                       ),
                     ],
                   ),
 
-                  SizedBox(height: screenSize.height * 0.05),
-
-                  
+                  SizedBox(
+                    height: screenSize.height * 0.15,
+                  ), // Spacing for bottom button
                 ],
               ),
             ),
           ),
 
-          /// 🔥 Bottom Button (same UI)
+          /// 🔥 Bottom Save Button
           Positioned(
             left: 20,
             right: 20,
             bottom: 20,
             child: CustomButton(
               onPressed: () => Navigator.pop(context),
-              buttonColor: const Color(0xFF213598),
+              buttonColor: accentCyan, // Cyan pops better in Dark Mode
               buttonText: "Save Changes",
               textStyle: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w500,
-                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
               ),
             ),
           ),
@@ -219,37 +238,30 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
-  /// 🔥 Reusable Field (no UI change)
+  /// 🔥 Dark Mode Field Helper
   Widget _buildField({
     required String title,
     required String hint,
-    double? width,
     IconData? suffixIcon,
   }) {
-    final Size screenSize = MediaQuery.sizeOf(context);
-    return Padding(
-      padding: EdgeInsets.only(bottom: screenSize.height * 0.005),
-      child: AppTextFormFieldTitled(
-        width: width,
-        focusColor: Colors.black,
-        hintText: hint,
-        hintStyle: const TextStyle(
-          fontSize: 16,
-          color: Color(0xA3555555),
-          fontWeight: FontWeight.w400,
-        ),
-        borderColor: const Color(0xA3555555),
-        fillColor: Colors.white,
-        color: Colors.white,
-        title: title,
-        titleTextStyle: const TextStyle(
-          fontSize: 18,
-          fontWeight: FontWeight.w500,
-          color: Color(0xFF555555),
-        ),
-        suffixIcon: suffixIcon,
+    return AppTextFormFieldTitled(
+      focusColor: accentCyan,
+      hintText: hint,
+      hintStyle: const TextStyle(
+        fontSize: 16,
+        color: Colors.white24,
+        fontWeight: FontWeight.w400,
       ),
+      borderColor: Colors.white10,
+      fillColor: surfaceColor,
+      color: Colors.white,
+      title: title,
+      titleTextStyle: const TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.w500,
+        color: Colors.white70,
+      ),
+      suffixIcon: suffixIcon,
     );
   }
-
 }

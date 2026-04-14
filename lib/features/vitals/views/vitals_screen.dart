@@ -11,6 +11,10 @@ class VitalsScreen extends StatefulWidget {
 }
 
 class _VitalsScreenState extends State<VitalsScreen> {
+  static const Color darkBg = Color(0xFF121212);
+  static const Color surfaceColor = Color(0xFF1E1E1E);
+  static const Color accentCyan = Color(0xFF81DEEA);
+
   final List<Map<String, dynamic>> vitalsList = const [
     {"title": "Sugar Levels", "image": "assets/images/diabets-test.png"},
     {"title": "Heart Rate", "image": "assets/images/blood-pressure.png"},
@@ -50,21 +54,24 @@ class _VitalsScreenState extends State<VitalsScreen> {
     final size = MediaQuery.sizeOf(context);
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: darkBg,
       appBar: CustomAppBar(
         title: "Vitals",
+        backgroundColor: darkBg,
+        titleStyle: const TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.bold,
+        ),
         onBack: () {},
         showBackButton: false,
       ),
-
-      /// 🔥 Smooth Scroll Fix
       body: CustomScrollView(
         controller: _controller,
         physics: const BouncingScrollPhysics(),
         slivers: [
-          /// 🔹 Vitals Grid
           SliverToBoxAdapter(child: SizedBox(height: size.height * 0.02)),
 
+          /// 🔹 Vitals Grid
           SliverPadding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             sliver: SliverGrid(
@@ -82,123 +89,109 @@ class _VitalsScreenState extends State<VitalsScreen> {
                       );
                     },
                     child: Container(
-                      padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(10),
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color(0xFFCCCCCC).withAlpha(85),
-                            blurRadius: 10,
-                          ),
-                        ],
+                        color: surfaceColor,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.05),
+                        ),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          /// 🔹 Title Row
-                          Row(
-                            children: [
-                              Container(
-                                height: 34,
-                                width: 34,
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFFED9D9).withAlpha(60),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: Center(
-                                  child: Image.asset(
-                                    item["image"],
-                                    height: 20,
-                                    width: 20,
-                                    filterQuality:
-                                        FilterQuality.low, // 🔥 performance
+                          Padding(
+                            padding: const EdgeInsets.all(10),
+                            child: Row(
+                              children: [
+                                Container(
+                                  height: 32,
+                                  width: 32,
+                                  decoration: BoxDecoration(
+                                    color: accentCyan.withOpacity(0.1),
+                                    shape: BoxShape.circle,
                                   ),
-                                ),
-                              ),
-                              SizedBox(width: size.width * 0.02),
-                              Expanded(
-                                child: Text(
-                                  item["title"],
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.black,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-
-                          SizedBox(height: size.height * 0.01),
-
-                          /// 🔹 Value + Status
-                          Row(
-                            children: [
-                              const Expanded(
-                                child: Text(
-                                  "120/80 mmHg",
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                    color: Color(0xFF213598),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 6),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 6,
-                                  vertical: 4,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFEDF7E6),
-                                  border: Border.all(color: Color(0xFF44AB42)),
-                                  borderRadius: BorderRadius.circular(100),
-                                ),
-                                child: const Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(
-                                      Icons.check_circle,
-                                      size: 10,
-                                      color: Colors.green,
+                                  child: Center(
+                                    child: Image.asset(
+                                      item["image"],
+                                      height: 18,
+                                      width: 18,
                                     ),
-                                    SizedBox(width: 3),
-                                    Text(
-                                      "Normal",
-                                      style: TextStyle(
-                                        fontSize: 9,
-                                        color: Color(0xFF44AB42),
-                                      ),
-                                    ),
-                                  ],
+                                  ),
                                 ),
-                              ),
-                            ],
+                                const SizedBox(width: 8),
+
+                                /// ✅ Responsive Title with Clipping
+                                Expanded(
+                                  child: Text(
+                                    item["title"],
+                                    // maxLines: 1,
+                                    overflow: TextOverflow.clip,
+                                    style: const TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.white70,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-
-                          SizedBox(height: size.height * 0.02),
-
+                          const Spacer(),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 10),
+                            child: Row(
+                              children: [
+                                /// ✅ Responsive Vital Value
+                                Expanded(
+                                  child: Text(
+                                    "120/80 mmHg",
+                                    maxLines: 1,
+                                    overflow: TextOverflow.clip,
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                      color: accentCyan,
+                                    ),
+                                  ),
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 6,
+                                    vertical: 3,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.greenAccent.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(100),
+                                  ),
+                                  child: const Text(
+                                    "Normal",
+                                    style: TextStyle(
+                                      fontSize: 8,
+                                      color: Colors.greenAccent,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const Spacer(),
                           Image.asset(
                             "assets/images/vitals-graph.png",
-                            filterQuality: FilterQuality.low, // 🔥 important
+                            color: accentCyan.withOpacity(0.8),
+                            fit: BoxFit.fitWidth,
+                            width: double.infinity,
                           ),
-
-                          const Spacer(),
-
-                          CustomButton(
-                            buttonColor: Colors.white,
-                            border: Border.all(color: Colors.grey.shade300),
-                            height: 24,
-                            radius: BorderRadius.circular(8),
-                            buttonText: "View",
-                            textStyle: const TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w500,
-                              color: Color(0xFF7D7D7D),
+                          Padding(
+                            padding: const EdgeInsets.all(10),
+                            child: CustomButton(
+                              buttonColor: Colors.white.withOpacity(0.05),
+                              height: 28,
+                              radius: BorderRadius.circular(8),
+                              buttonText: "View",
+                              textStyle: const TextStyle(
+                                fontSize: 10,
+                                color: Colors.white,
+                              ),
                             ),
                           ),
                         ],
@@ -211,27 +204,24 @@ class _VitalsScreenState extends State<VitalsScreen> {
                 crossAxisCount: 2,
                 mainAxisSpacing: 12,
                 crossAxisSpacing: 12,
-                mainAxisExtent: 190,
+                mainAxisExtent: 190, // Fixed height for vertical consistency
               ),
             ),
           ),
 
-          /// 🔹 Reports Title
-          SliverToBoxAdapter(child: SizedBox(height: size.height * 0.03)),
-          const SliverToBoxAdapter(
+          SliverToBoxAdapter(
             child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20),
+              padding: const EdgeInsets.fromLTRB(20, 24, 20, 12),
               child: Text(
                 "Reports Data",
                 style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w500,
-                  color: Color(0xFF263238),
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white.withOpacity(0.9),
                 ),
               ),
             ),
           ),
-          SliverToBoxAdapter(child: SizedBox(height: size.height * 0.03)),
 
           /// 🔹 Reports Grid
           SliverPadding(
@@ -240,80 +230,77 @@ class _VitalsScreenState extends State<VitalsScreen> {
               delegate: SliverChildBuilderDelegate((context, index) {
                 final item = reportsList[index];
 
-                return RepaintBoundary(
-                  child: Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(8),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFFCCCCCC).withAlpha(100),
-                          blurRadius: 6,
+                return Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: surfaceColor,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        height: 32,
+                        width: 32,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.05),
+                          shape: BoxShape.circle,
                         ),
-                      ],
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          height: 32,
-                          width: 32,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF28B873).withAlpha(20),
-                            shape: BoxShape.circle,
+                        child: Center(
+                          child: Image.asset(
+                            item["image"],
+                            height: 16,
+                            width: 16,
                           ),
-                          child: Center(
-                            child: Image.asset(
-                              item["image"],
-                              height: 20,
-                              width: 20,
-                              filterQuality: FilterQuality.low,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            /// ✅ Responsive Report Title
+                            Text(
+                              item["title"],
+                              // maxLines: 1,
+                              overflow: TextOverflow.clip,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.white54,
+                              ),
                             ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                item["title"],
+                            const SizedBox(height: 2),
+                            Align(
+                              alignment: Alignment.center,
+                              child: Text(
+                                item["count"].toString(),
                                 style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                  color: Color(0xFF263238),
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
                                 ),
                               ),
-                              const SizedBox(height: 4),
-                              Align(
-                                alignment: Alignment.center,
-                                child: Text(
-                                  item["count"].toString(),
-                                  style: const TextStyle(
-                                    fontSize: 22,
-                                    fontWeight: FontWeight.w600,
-                                    color: Color(0xFF263238),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 );
               }, childCount: reportsList.length),
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
-                mainAxisSpacing: 16,
-                crossAxisSpacing: 16,
-                childAspectRatio: 1.64,
+                mainAxisSpacing: 12,
+                crossAxisSpacing: 12,
+                childAspectRatio: 1.8, // Responsive height based on width
               ),
             ),
           ),
 
-          const SliverToBoxAdapter(child: SizedBox(height: 20)),
+          const SliverToBoxAdapter(child: SizedBox(height: 40)),
         ],
       ),
     );

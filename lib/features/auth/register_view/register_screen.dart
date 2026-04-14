@@ -8,74 +8,83 @@ import 'package:medikto/features/auth/widgets/gender_selection_widget.dart';
 class RegisterScreen extends StatelessWidget {
   const RegisterScreen({super.key});
 
+  // Dark Mode Palette
+  static const Color darkBg = Color(0xFF121212);
+  static const Color surfaceColor = Color(0xFF1E1E1E);
+  static const Color accentCyan = Color(0xFF81DEEA);
+
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.sizeOf(context); // ✅ cache once
+    final size = MediaQuery.sizeOf(context);
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: const SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
-        statusBarIconBrightness: Brightness.dark,
+        statusBarIconBrightness: Brightness.light, // White icons for dark mode
       ),
-      child: Scaffold(
-        backgroundColor: Color(0xFFF9F9F9),
-        body: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-          child: Column(
-            children: [
-              /// 🔹 SCROLLABLE CONTENT
-              Expanded(
-                child: SingleChildScrollView(
-                  physics: const BouncingScrollPhysics(), // ✅ smooth scroll
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      SizedBox(height: size.height * 0.04),
+      child: SafeArea(
+        top: false,
+        bottom: true,
+        child: Scaffold(
+          backgroundColor: darkBg,
+          body: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+            child: Column(
+              children: [
+                /// 🔹 SCROLLABLE CONTENT
+                Expanded(
+                  child: SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(height: size.height * 0.04),
 
-                      /// 🔹 TITLE
-                      const Center(
-                        child: Text(
-                          "Your journey starts here",
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.w500,
-                            color: Color(0xFF263238),
+                        /// 🔹 TITLE
+                        const Center(
+                          child: Text(
+                            "Your journey starts here",
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
                           ),
                         ),
-                      ),
+        
+                        const SizedBox(height: 8),
 
-                      const SizedBox(height: 6),
-
-                      const Center(
-                        child: Text(
-                          "Start your healthy journey with simple details.",
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w400,
-                            color: Color(0xFF8B8B8B),
+                        const Center(
+                          child: Text(
+                            "Start your healthy journey with simple details.",
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w400,
+                              color: Colors.white54,
+                            ),
                           ),
                         ),
-                      ),
 
-                      SizedBox(height: size.height * 0.04),
+                        SizedBox(height: size.height * 0.04),
 
-                      /// 🔹 PROFILE IMAGE
-                      const Center(child: _ProfileAvatar()),
+                        /// 🔹 PROFILE IMAGE
+                        const Center(child: _ProfileAvatar()),
 
-                      SizedBox(height: size.height * 0.04),
+                        SizedBox(height: size.height * 0.04),
 
-                      /// 🔹 FORM FIELDS
-                      const _FormFields(),
+                        /// 🔹 FORM FIELDS
+                        const _FormFields(),
 
-                      SizedBox(height: size.height * 0.02),
-                    ],
+                        SizedBox(height: size.height * 0.02),
+                      ],
+                    ),
                   ),
                 ),
-              ),
 
-              /// 🔥 BOTTOM SECTION
-              _BottomSection(size: size),
-            ],
+                /// 🔥 BOTTOM SECTION
+                _BottomSection(size: size),
+              ],
+            ),
           ),
         ),
       ),
@@ -94,29 +103,23 @@ class _ProfileAvatar extends StatelessWidget {
           height: 120,
           width: 120,
           decoration: BoxDecoration(
-            color: Colors.grey.shade200,
+            color: const Color(0xFF252525),
             shape: BoxShape.circle,
+            border: Border.all(color: Colors.white10, width: 2),
           ),
-          child: Icon(Icons.person, size: 60, color: Colors.grey.shade400),
+          child: const Icon(Icons.person, size: 60, color: Colors.white24),
         ),
         Positioned(
           bottom: 10,
           right: 0,
           child: Container(
-            height: 30,
-            width: 30,
-            decoration: BoxDecoration(
-              color: Colors.white,
+            height: 32,
+            width: 32,
+            decoration: const BoxDecoration(
+              color: Color(0xFF81DEEA), // Brand Cyan
               shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black12,
-                  blurRadius: 4,
-                  offset: Offset(0, 2),
-                ),
-              ],
             ),
-            child: const Icon(Icons.edit, size: 16, color: Color(0xFF7D7D7D)),
+            child: const Icon(Icons.edit, size: 16, color: Colors.black),
           ),
         ),
       ],
@@ -127,6 +130,9 @@ class _ProfileAvatar extends StatelessWidget {
 class _FormFields extends StatelessWidget {
   const _FormFields();
 
+  static const Color surfaceColor = Color(0xFF1E1E1E);
+  static const Color accentCyan = Color(0xFF81DEEA);
+
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.sizeOf(context);
@@ -135,71 +141,73 @@ class _FormFields extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildField("Full Name", "Enter your full name"),
-        SizedBox(height: size.height * 0.005),
+        SizedBox(height: size.height * 0.01),
+        
         AppTextFormFieldTitled(
           title: "Contact",
-          hintText: "",
-          focusColor: Colors.black,
-          fillColor: Colors.white,
+          hintText: "Enter phone number",
+          focusColor: accentCyan,
+          fillColor: surfaceColor,
           color: Colors.white,
           textInputType: TextInputType.phone,
-
-          prefix: Text(
-            "+91",
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w400,
-              color: Color(0xFF555555),
+          prefix: const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 10),
+            child: Text(
+              "+91",
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: accentCyan,
+              ),
             ),
           ),
-          borderColor: const Color(0xA3555555),
+          borderColor: Colors.white10,
           hintStyle: const TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w400,
-            color: Color(0xA3555555),
+            color: Colors.white24,
           ),
           titleTextStyle: const TextStyle(
-            fontSize: 18,
+            fontSize: 14,
             fontWeight: FontWeight.w500,
-            color: Color(0xFF555555),
+            color: Colors.white70,
           ),
         ),
 
-
-
-        // _buildField("Contact", "+91 - "),
-        SizedBox(height: size.height * 0.005),
+        SizedBox(height: size.height * 0.01),
 
         /// 🔹 DOB + GENDER
         Row(
           children: [
             Expanded(child: _buildField("DOB", "DD/MM/YYYY")),
             SizedBox(width: size.width * 0.04),
-            Expanded(child: GenderSection()),
+            const Expanded(
+              child: GenderSection(),
+            ), // Ensure internal widget is dark
           ],
         ),
 
-        SizedBox(height: size.height * 0.005),
+        SizedBox(height: size.height * 0.01),
 
         _buildField("Aadhar Number", "0000 0000 0000"),
 
         SizedBox(height: size.height * 0.04),
 
         const Text(
-          "Password",
+          "Security",
           style: TextStyle(
             fontSize: 22,
-            fontWeight: FontWeight.w500,
-            color: Color(0xFF263238),
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
           ),
         ),
 
-        SizedBox(height: size.height * 0.005),
+        SizedBox(height: size.height * 0.01),
 
         _buildField("New Password", "Enter your new password"),
-        SizedBox(height: size.height * 0.005),
+        SizedBox(height: size.height * 0.01),
 
-        _buildField("Confirm Password", "Renter your new password"),
+        _buildField("Confirm Password", "Re-enter your new password"),
       ],
     );
   }
@@ -208,24 +216,23 @@ class _FormFields extends StatelessWidget {
     return AppTextFormFieldTitled(
       title: title,
       hintText: hint,
-      focusColor: Colors.black,
-      fillColor: Colors.white,
+      focusColor: accentCyan,
+      fillColor: surfaceColor,
       color: Colors.white,
-      borderColor: const Color(0xA3555555),
+      borderColor: Colors.white10,
       hintStyle: const TextStyle(
         fontSize: 16,
         fontWeight: FontWeight.w400,
-        color: Color(0xA3555555),
+        color: Colors.white24,
       ),
       titleTextStyle: const TextStyle(
-        fontSize: 18,
+        fontSize: 14,
         fontWeight: FontWeight.w500,
-        color: Color(0xFF555555),
+        color: Colors.white70,
       ),
     );
   }
 }
-
 
 class _BottomSection extends StatelessWidget {
   final Size size;
@@ -234,43 +241,53 @@ class _BottomSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    const Color accentCyan = Color(0xFF81DEEA);
+
     return Column(
       children: [
         CustomButton(
           onPressed: () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (_) => AccountCreateSuccess()),
+              MaterialPageRoute(builder: (_) => const AccountCreateSuccess()),
             );
           },
-          buttonText: "Continue",
-          buttonColor: const Color(0xFF213598),
+          buttonText: "Create Account",
+          buttonColor: accentCyan,
           textStyle: const TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w700,
-            color: Color(0xFFFFFFFF),
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
           ),
         ),
 
-        SizedBox(height: size.height * 0.01),
+        SizedBox(height: size.height * 0.02),
 
         const Text.rich(
+          textAlign: TextAlign.center,
           TextSpan(
-            text: "By signing In , I agree to health safe ",
-            style: TextStyle(fontSize: 12, color: Color(0xFF8E98A8)),
+            text: "By signing up, I agree to health safe ",
+            style: TextStyle(fontSize: 11, color: Colors.white38),
             children: [
               TextSpan(
                 text: "Terms of use ",
-                style: TextStyle(color: Color(0xFF213598)),
+                style: TextStyle(
+                  color: accentCyan,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               TextSpan(text: "and "),
               TextSpan(
                 text: "Privacy Policy",
-                style: TextStyle(color: Color(0xFF213598)),
+                style: TextStyle(
+                  color: accentCyan,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ],
           ),
         ),
+        // SizedBox(height: size.height * 0.01),
       ],
     );
   }

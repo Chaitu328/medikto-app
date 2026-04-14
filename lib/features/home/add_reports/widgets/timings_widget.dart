@@ -15,53 +15,46 @@ class TimingsSection extends StatefulWidget {
 }
 
 class _TimingsSectionState extends State<TimingsSection> {
+  // Theme Colors consistent with your designs
+  static const Color surfaceColor = Color(0xFF1E1E1E);
+  static const Color accentCyan = Color(0xFF81DEEA);
+  static const Color textSecondary = Colors.white54;
+
   List<TimeModel> times = [
     TimeModel(time: "04:30 PM", isEnabled: true),
     TimeModel(time: "08:30 PM", isEnabled: false),
   ];
 
-  TimeOfDay selectedTime = const TimeOfDay(hour: 0, minute: 0);
+  TimeOfDay selectedTime = const TimeOfDay(hour: 12, minute: 0);
 
-  /// 🔥 Pick Time
+  /// 🔥 Dark Mode Time Picker
   Future<void> _pickTime() async {
     final picked = await showTimePicker(
       context: context,
       initialTime: selectedTime,
-
-      /// 🔥 THEME CUSTOMIZATION
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(
-              primary: Color(0xFF213598), // 🔵 Blue (header, buttons)
-              onPrimary: Colors.white, // text on blue
-              onSurface: Color(0xFF3D3D3D), // normal text
+            colorScheme: const ColorScheme.dark(
+              // 🔥 Switched to Dark
+              primary: accentCyan,
+              onPrimary: Colors.black,
+              surface: Color(0xFF252525),
+              onSurface: Colors.white,
             ),
-
-            /// 🟦 Dialog Background
-            dialogBackgroundColor: Colors.white,
-
-            /// 🔘 Buttons (OK / CANCEL)
+            dialogBackgroundColor: const Color(0xFF1E1E1E),
             textButtonTheme: TextButtonThemeData(
-              style: TextButton.styleFrom(
-                foregroundColor: const Color(0xFF213598), // button text color
-              ),
+              style: TextButton.styleFrom(foregroundColor: accentCyan),
             ),
-
-            /// 🕒 Time Picker specific theme
             timePickerTheme: const TimePickerThemeData(
-              backgroundColor: Colors.white,
-
-              hourMinuteTextColor: Color(0xFF213598),
-              hourMinuteColor: Color(0xFFE8ECF8),
-
-              dayPeriodTextColor: Color(0xFF213598),
-              dayPeriodColor: Color(0xFFE8ECF8),
-
-              dialHandColor: Color(0xFF213598),
-              dialBackgroundColor: Color(0xFFF5F6FA),
-
-              entryModeIconColor: Color(0xFF213598),
+              backgroundColor: Color(0xFF1E1E1E),
+              hourMinuteTextColor: accentCyan,
+              hourMinuteColor: Colors.white10,
+              dayPeriodTextColor: accentCyan,
+              dayPeriodColor: Colors.white10,
+              dialHandColor: accentCyan,
+              dialBackgroundColor: Colors.white10,
+              entryModeIconColor: accentCyan,
             ),
           ),
           child: child!,
@@ -70,13 +63,10 @@ class _TimingsSectionState extends State<TimingsSection> {
     );
 
     if (picked != null) {
-      setState(() {
-        selectedTime = picked;
-      });
+      setState(() => selectedTime = picked);
     }
   }
 
-  /// 🔥 Format Time
   String formatTime(TimeOfDay time) {
     final hour = time.hourOfPeriod == 0 ? 12 : time.hourOfPeriod;
     final minute = time.minute.toString().padLeft(2, '0');
@@ -84,7 +74,6 @@ class _TimingsSectionState extends State<TimingsSection> {
     return "$hour:$minute $period";
   }
 
-  /// 🔥 Add Time
   void _addTime() {
     setState(() {
       times.add(TimeModel(time: formatTime(selectedTime)));
@@ -99,84 +88,52 @@ class _TimingsSectionState extends State<TimingsSection> {
         const Text(
           "Timings & Alerts",
           style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-            color: Color(0xFF555555),
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+            color: accentCyan, // Section header in brand Cyan
+            
           ),
         ),
+        const SizedBox(height: 15),
 
-        const SizedBox(height: 12),
-
-        /// 🔥 Time List
+        /// 🔹 Time List
         ...times.asMap().entries.map((entry) {
-          // int index = entry.key;
           TimeModel item = entry.value;
-
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 12),
+          return Container(
+            margin: const EdgeInsets.only(bottom: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: surfaceColor,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.white10),
+            ),
             child: Row(
               children: [
-                const Icon(
-                  Icons.access_time,
-                  size: 20,
-                  color: Color(0xFFA8A8A8),
-                ),
-                const SizedBox(width: 6),
-
+                const Icon(Icons.access_time, size: 18, color: accentCyan),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Text(
                     item.time,
                     style: const TextStyle(
                       fontSize: 16,
-                      fontWeight: FontWeight.w400,
-                      color: Color(0xFF263238),
+                      fontWeight: FontWeight.w500,
+                      color: Colors.white,
                     ),
                   ),
                 ),
-
                 Transform.scale(
                   scale: 0.8,
                   child: Switch(
                     value: item.isEnabled,
-                    onChanged: (value) {
-                      setState(() {
-                        item.isEnabled = value;
-                      });
-                    },
-
-                    /// 🔵 Thumb (circle)
-                    thumbColor: WidgetStateProperty.resolveWith<Color>((
-                      states,
-                    ) {
-                      if (states.contains(WidgetState.selected)) {
-                        return const Color(0xFF213598); // ON thumb
-                      }
-                      return const Color(0xFF929292); // OFF thumb
-                    }),
-
-                    /// 🟦 Track (background)
-                    trackColor: WidgetStateProperty.resolveWith<Color>((
-                      states,
-                    ) {
-                      if (states.contains(WidgetState.selected)) {
-                        return const Color(
-                          0xFF213598,
-                        ).withAlpha(50); // ON background
-                      }
-                      return Colors.white; // OFF background
-                    }),
-
-                    /// 🔥 Border (important for your UI)
-                    trackOutlineColor: WidgetStateProperty.resolveWith<Color>((
-                      states,
-                    ) {
-                      if (states.contains(WidgetState.selected)) {
-                        return const Color(0xFF213598); // ON border
-                      }
-                      return const Color(0xFF929292); // OFF border
-                    }),
-
-                    trackOutlineWidth: WidgetStateProperty.all(2),
+                    onChanged: (value) =>
+                        setState(() => item.isEnabled = value),
+                    activeColor: accentCyan,
+                    activeTrackColor: accentCyan.withOpacity(0.3),
+                    inactiveThumbColor: Colors.white24,
+                    inactiveTrackColor: Colors.black26,
+                    trackOutlineColor: WidgetStateProperty.all(
+                      Colors.transparent,
+                    ),
                   ),
                 ),
               ],
@@ -184,66 +141,54 @@ class _TimingsSectionState extends State<TimingsSection> {
           );
         }),
 
-        const SizedBox(height: 10),
+        const SizedBox(height: 20),
 
-        /// 🔥 Add Time Label
-        Row(
-          children: const [
-            Icon(Icons.add_circle_outline, color: Color(0xFF213598)),
-            SizedBox(width: 8),
-            Text(
-              "Add Time",
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w400,
-                color: Color(0xFF263238),
-              ),
-            ),
-          ],
-        ),
-
-        const SizedBox(height: 10),
-
-        /// 🔥 Time Picker + Add Button
+        /// 🔹 Add Time Controls
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
+          padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            border: Border.all(color: Color(0xD1555555), width: 1),
-            borderRadius: BorderRadius.circular(8),
+            color: surfaceColor,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: accentCyan.withOpacity(0.2)),
           ),
           child: Row(
             children: [
-              /// Time Picker
               Expanded(
                 child: InkWell(
                   onTap: _pickTime,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    child: Text(
-                      formatTime(selectedTime),
-                      style: const TextStyle(fontSize: 16),
-                    ),
+                  borderRadius: BorderRadius.circular(8),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        "Select Reminder",
+                        style: TextStyle(color: textSecondary, fontSize: 10),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        formatTime(selectedTime),
+                        style: const TextStyle(
+                          fontSize: 18,
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
-
-              /// Add Button
-              ElevatedButton(
+              ElevatedButton.icon(
                 onPressed: _addTime,
+                icon: const Icon(Icons.add, size: 16),
+                label: const Text("Add"),
                 style: ElevatedButton.styleFrom(
+                  backgroundColor: accentCyan,
+                  foregroundColor: Colors.black,
                   elevation: 0,
-                  backgroundColor: const Color(0xFF213598),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(6),
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                ),
-                child: const Text(
-                  "Add",
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                    color: Color(0xFFffffff),
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
                 ),
               ),
             ],

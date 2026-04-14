@@ -12,26 +12,37 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   bool isSwitched = false;
+  
+  // Theme Colors consistent with your other dark mode screens
+  static const Color darkBg = Color(0xFF121212);
+  static const Color surfaceColor = Color(0xFF1E1E1E);
+  static const Color accentCyan = Color(0xFF81DEEA);
+
   @override
   Widget build(BuildContext context) {
-    final screenSize = MediaQuery.sizeOf(context); // ✅ correct
+    final screenSize = MediaQuery.sizeOf(context);
 
     return Scaffold(
-      backgroundColor: Colors.grey.shade100,
+      backgroundColor: darkBg,
       appBar: CustomAppBar(
         title: "Profile",
+        backgroundColor: darkBg,
+        titleStyle: const TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.bold,
+        ),
         onBack: () {},
         showBackButton: false,
       ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20),
         child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(), // 🔥 smooth scroll
+          physics: const BouncingScrollPhysics(),
           child: Column(
             children: [
               SizedBox(height: screenSize.height * 0.016),
 
-              /// 🔹 Profile Card
+              /// 🔹 Profile Card (Dark Mode)
               GestureDetector(
                 onTap: () {
                   Navigator.push(
@@ -42,11 +53,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   );
                 },
                 child: Container(
-                  padding: const EdgeInsets.fromLTRB(10, 20, 20, 20),
+                  padding: const EdgeInsets.fromLTRB(15, 20, 20, 20),
                   width: double.infinity,
                   decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(8),
+                    color: surfaceColor,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.white.withOpacity(0.05)),
                   ),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
@@ -55,19 +67,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       Row(
                         children: [
                           Container(
-                            height: 40,
-                            width: 40,
+                            height: 50,
+                            width: 50,
                             decoration: BoxDecoration(
-                              color: Colors.grey.shade200,
+                              color: Colors.white.withOpacity(0.05),
                               shape: BoxShape.circle,
                             ),
                             child: const Icon(
                               Icons.person,
-                              color: Color(0xFF5F6368),
-                              size: 20,
+                              color: accentCyan,
+                              size: 28,
                             ),
                           ),
-                          const SizedBox(width: 20),
+                          const SizedBox(width: 15),
 
                           /// 🔹 Text Section
                           Column(
@@ -76,48 +88,44 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               const Text(
                                 "Shiva Sai Chidurala",
                                 style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.w500,
-                                  color: Color(0xFF3D3D3D),
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
                                 ),
                               ),
-                              SizedBox(height: screenSize.height * 0.005),
-
+                              const SizedBox(height: 4),
                               RichText(
-                                text: TextSpan(
+                                text: const TextSpan(
                                   text: "Health ID : ",
                                   style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w500,
-                                    color: Color(0xFF5F6368),
+                                    fontSize: 12,
+                                    color: Colors.white54,
                                   ),
                                   children: [
                                     TextSpan(
                                       text: "shiva@abdm",
                                       style: TextStyle(
-                                        fontWeight: FontWeight.w400,
-                                        color: Color(0xFF213598),
+                                        color: accentCyan,
+                                        fontWeight: FontWeight.bold,
                                       ),
                                     ),
                                   ],
                                 ),
                               ),
-                              SizedBox(height: screenSize.height * 0.005),
-
+                              const SizedBox(height: 2),
                               RichText(
-                                text: TextSpan(
+                                text: const TextSpan(
                                   text: "ABDM : ",
                                   style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w500,
-                                    color: Color(0xFF5F6368),
+                                    fontSize: 12,
+                                    color: Colors.white54,
                                   ),
                                   children: [
                                     TextSpan(
                                       text: "12-3456-7890-1234",
                                       style: TextStyle(
-                                        fontWeight: FontWeight.w400,
-                                        color: Color(0xFF213598),
+                                        color: accentCyan,
+                                        fontWeight: FontWeight.bold,
                                       ),
                                     ),
                                   ],
@@ -127,16 +135,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                         ],
                       ),
-                      const Icon(Icons.arrow_forward_ios, color: Colors.black),
+                      const Icon(
+                        Icons.arrow_forward_ios,
+                        color: Colors.white24,
+                        size: 16,
+                      ),
                     ],
                   ),
                 ),
               ),
 
-              SizedBox(height: screenSize.height * 0.01),
-              Image.asset("assets/images/health-premium.png"),
+              SizedBox(height: screenSize.height * 0.02),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Image.asset("assets/images/health-premium.png"),
+              ),
 
-              SizedBox(height: screenSize.height * 0.01),
+              SizedBox(height: screenSize.height * 0.02),
 
               /// 🔹 Settings Section
               _buildSection(
@@ -144,70 +159,37 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 children: [
                   ListTile(
                     dense: true,
-                    visualDensity: VisualDensity.compact,
                     contentPadding: EdgeInsets.zero,
-                    title: Text(
-                      "Notifications", // Your existing title
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w500,
-                        color: Color(0xFF3D3D3D),
-                      ),
-                    ),
-
-                    /// 🔵 LEADING ICON
                     leading: const Icon(
                       Icons.notifications_outlined,
-                      color: Color(0xFF5F6368),
+                      color: Colors.white70,
                     ),
-
-                    /// 🟢 TRAILING SWITCH INTEGRATION
+                    title: const Text(
+                      "Notifications",
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.white,
+                      ),
+                    ),
                     trailing: Transform.scale(
                       scale: 0.8,
                       child: Switch(
                         value: isSwitched,
-                        onChanged: (value) {
-                          setState(() {
-                            isSwitched = value;
-                          });
-                        },
-
-                        /// 🔵 Thumb (circle)
-                        thumbColor: WidgetStateProperty.resolveWith<Color>((
-                          states,
-                        ) {
-                          if (states.contains(WidgetState.selected)) {
-                            return const Color(0xFF213598); // ON thumb
-                          }
-                          return const Color(0xFF929292); // OFF thumb
-                        }),
-
-                        /// 🟦 Track (background)
-                        trackColor: WidgetStateProperty.resolveWith<Color>((
-                          states,
-                        ) {
-                          if (states.contains(WidgetState.selected)) {
-                            return const Color(
-                              0xFF213598,
-                            ).withAlpha(50); // ON background
-                          }
-                          return Colors.white; // OFF background
-                        }),
-
-                        /// 🔥 Border
-                        trackOutlineColor:
-                            WidgetStateProperty.resolveWith<Color>((states) {
-                              if (states.contains(WidgetState.selected)) {
-                                return const Color(0xFF213598); // ON border
-                              }
-                              return const Color(0xFF929292); // OFF border
-                            }),
-                        trackOutlineWidth: WidgetStateProperty.all(2),
+                        onChanged: (value) =>
+                            setState(() => isSwitched = value),
+                        activeTrackColor: accentCyan.withOpacity(0.3),
+                        activeColor: accentCyan,
+                        inactiveThumbColor: Colors.grey,
+                        inactiveTrackColor: Colors.white10,
+                        trackOutlineColor: WidgetStateProperty.all(
+                          Colors.transparent,
+                        ),
                       ),
                     ),
                   ),
-                  _ListItem(
-                    icon: Icons.wordpress_outlined,
+                  const _ListItem(
+                    icon: Icons.language,
                     title: "Language",
                     subtitle: "English",
                     trailing: Icons.arrow_forward_ios,
@@ -230,23 +212,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                       );
                     },
-
-                    icon: Icons.key,
+                    icon: Icons.key_outlined,
                     title: "Change Password",
-                    trailing: Icons.arrow_forward_ios,
-                  ),
-                ],
-              ),
-
-              SizedBox(height: screenSize.height * 0.02),
-
-              /// 🔹 Refer
-              _buildSection(
-                title: "Refer & Earn",
-                children: const [
-                  _ListItem(
-                    icon: Icons.card_giftcard,
-                    title: "Get 50rs",
                     trailing: Icons.arrow_forward_ios,
                   ),
                 ],
@@ -287,7 +254,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
               /// 🔹 Logout
               _buildSection(
                 children: const [
-                  _ListItem(icon: Icons.logout, title: "Logout"),
+                  _ListItem(
+                    icon: Icons.logout,
+                    title: "Logout",
+                    color: Colors.white70,
+                  ),
                 ],
               ),
 
@@ -304,7 +275,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ],
               ),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: 100), // Space for bottom bar
             ],
           ),
         ),
@@ -312,14 +283,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  /// 🔥 Reusable Section (NO UI CHANGE)
   Widget _buildSection({String? title, required List<Widget> children}) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       width: double.infinity,
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
+        color: surfaceColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white.withOpacity(0.05)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -328,12 +299,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
             Text(
               title,
               style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w500,
-                color: Color(0xFF3D3D3D),
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: accentCyan,
+                
               ),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 6),
           ],
           ...children,
         ],
@@ -342,7 +314,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 }
 
-/// 🔥 Optimized ListTile (Reusable)
 class _ListItem extends StatelessWidget {
   final IconData icon;
   final String title;
@@ -364,27 +335,26 @@ class _ListItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       dense: true,
-      visualDensity: VisualDensity.compact,
       contentPadding: EdgeInsets.zero,
-      leading: Icon(icon, size: 24, color: color ?? const Color(0xFF5F6368)),
+      leading: Icon(icon, size: 22, color: color ?? Colors.white70),
       title: Text(
         title,
         style: TextStyle(
-          fontSize: 20,
+          fontSize: 16,
           fontWeight: FontWeight.w500,
-          color: color ?? const Color(0xFF3D3D3D),
+          color: color ?? Colors.white,
         ),
       ),
       subtitle: subtitle != null
           ? Text(
               subtitle!,
-              style: const TextStyle(fontSize: 14, color: Color(0xFF6C6B69)),
+              style: const TextStyle(fontSize: 12, color: Colors.white38),
             )
           : null,
       trailing: trailing != null
-          ? Icon(trailing, size: 20, color: const Color(0xFF5F6368))
+          ? Icon(trailing, size: 14, color: Colors.white24)
           : null,
-      onTap: () => onTap?.call(),
+      onTap: onTap,
     );
   }
 }

@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:medikto/core/utils/widgets/custom_button.dart';
 import 'package:medikto/core/utils/widgets/custom_textfields.dart';
 import 'package:medikto/features/home/add_reports/widgets/timings_widget.dart';
+import 'package:medikto/features/home/notifications/notification_screen.dart';
 import 'package:medikto/features/home/premium_plans_views/premium_plans.dart';
+import 'package:medikto/features/reports/views/medication_verification_screen.dart';
 import 'package:medikto/features/reports/widgets/reports_action_sheet.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -14,104 +16,455 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  // Use 'static const' for data that never changes to save memory
-  static const List<Map<String, dynamic>> vitalsList = [
-    {
-      "title": "Blood Pressure",
-      "value": "120/80",
-      "unit": "mmHg",
-      "icon": "assets/images/blood-drop.png",
-    },
-    {
-      "title": "Heart Rate",
-      "value": "80",
-      "unit": " Bpm",
-      "icon": "assets/images/blood-pressure.png",
-    },
-    {
-      "title": "Body Temperature",
-      "value": "36.6",
-      "unit": "°C",
-      "icon": "assets/images/thermometer.png",
-    },
-    {
-      "title": "Sugar Levels",
-      "value": "106",
-      "unit": "mg/dl",
-      "icon": "assets/images/diabets-test.png",
-    },
-  ];
-
-  static const List<String> carouselImages = [
-    "assets/images/motivational-quotes.png",
-    "assets/images/motivational-quotes2.png",
-    "assets/images/motivational-quotes3.png",
-  ];
+  // Brand Colors modified for Dark Mode visibility
+  static const Color primaryBlue = Color(0xFF4D6AFF); // Brightened for dark bg
+  static const Color darkBg = Color(0xFF121212);
+  static const Color surfaceColor = Color(0xFF1E1E1E);
 
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.sizeOf(context);
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: darkBg,
       appBar: _buildAppBar(size),
       body: CustomScrollView(
-        // 🔥 Switched to CustomScrollView for better performance
         physics: const BouncingScrollPhysics(),
         slivers: [
           SliverPadding(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
-                const MediktoOverlappingCarousel(imagePaths: carouselImages),
-                SizedBox(height: size.height * 0.02),
                 const Text(
-                  "My Vitals",
+                  "DASHBOARD",
                   style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w500,
-                    color: Color(0xFF263238),
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1.2,
+                    color: Colors.white54,
                   ),
                 ),
-                SizedBox(height: size.height * 0.01),
+                const Text(
+                  "Good morning, \nShiva Sai",
+                  style: TextStyle(
+                    fontSize: 26,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                /// 1. ADHERENCE SCORE CARD (Dark Themed)
+                _buildAdherenceCard(),
+
+                const SizedBox(height: 25),
+
+                /// 2. NEXT DOSE QUICK ACTION
+                _buildNextDoseCard(),
+
+                const SizedBox(height: 16),
+
+                /// 3. TODAY'S SCHEDULE HEADER
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      "Today's Schedule",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () {},
+                      child: const Text(
+                        "VIEW FULL",
+                        style: TextStyle(
+                          color: Color(0xFF81DEEA), // Cyan for dark mode
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+
+                /// 4. SCHEDULE LIST
+                _buildScheduleItem(
+                  "Vitamin D",
+                  "08:00 AM • 1 Capsule",
+                  "TAKEN",
+                  true,
+                ),
+                _buildScheduleItem(
+                  "Lisinopril",
+                  "09:00 PM • 10mg",
+                  "LATER",
+                  false,
+                ),
+
+                const SizedBox(height: 25),
+
+                const Text(
+                  "Quick Health Look",
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 15),
               ]),
             ),
           ),
 
-          /// ✅ Pinned Grid (No shrinkWrap = High Performance)
+          /// 5. VITALS GRID (Dark Cards)
           SliverPadding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             sliver: SliverGrid(
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
-                mainAxisSpacing: 20,
-                crossAxisSpacing: 20,
+                mainAxisSpacing: 15,
+                crossAxisSpacing: 15,
                 mainAxisExtent: 110,
               ),
-              delegate: SliverChildBuilderDelegate(
-                (context, index) =>
-                    _VitalsCard(item: vitalsList[index], size: size),
-                childCount: vitalsList.length,
-              ),
+              delegate: SliverChildListDelegate([
+                _buildSmallVitalCard(
+                  "Pulse",
+                  "72",
+                  "BPM",
+                  Icons.favorite,
+                  Colors.redAccent,
+                ),
+                _buildSmallVitalCard(
+                  "Sleep",
+                  "8h 12m",
+                  "",
+                  Icons.bedtime,
+                  Colors.orange,
+                ),
+                _buildSmallVitalCard(
+                  "BP",
+                  "120/80",
+                  "mmHg",
+                  Icons.bloodtype,
+                  Colors.blueAccent,
+                ),
+                _buildSmallVitalCard(
+                  "Sugar",
+                  "106",
+                  "mg/dl",
+                  Icons.local_drink,
+                  Colors.greenAccent,
+                ),
+              ]),
+            ),
+          ),
+          const SliverToBoxAdapter(child: SizedBox(height: 120)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAdherenceCard() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        // Subtle gradient to match the modern dark UI
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [surfaceColor, surfaceColor.withOpacity(0.8)],
+        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.white.withOpacity(0.05)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          // --- Left Side: Text Data ---
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  "Medication",
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                const Text(
+                  "Compliance",
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                const Text(
+                  "Last 7 days performance",
+                  style: TextStyle(fontSize: 11, color: Colors.white54),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                  textBaseline: TextBaseline.alphabetic,
+                  children: const [
+                    Text(
+                      "85%",
+                      style: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF81DEEA), // Bright Cyan
+                      ),
+                    ),
+                    SizedBox(width: 6),
+                    Text(
+                      "ADHERENCE",
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 0.5,
+                        color: Color(0xFF81DEEA), // Darker Cyan/Teal
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
 
-          SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-            sliver: SliverList(
-              delegate: SliverChildListDelegate([
-                const _ReportsCard(),
-                SizedBox(height: size.height * 0.02),
-                const _MedicineNextDueCard(),
-                SizedBox(height: size.height * 0.02),
-                _buildImage("assets/images/health-excellence-banner.png"),
-                SizedBox(height: size.height * 0.02),
-                const _AddReportCard(),
-                SizedBox(height: size.height * 0.02),
-                _buildImage("assets/images/Telemedicine-coming-soon.png"),
-                SizedBox(height: size.height * 0.02),
-                _buildImage("assets/images/AI-builder-button.png"),
-              ]),
+          // --- Right Side: Circular Progress with Badge ---
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              SizedBox(
+                height: 90,
+                width: 90,
+                child: CircularProgressIndicator(
+                  value: 0.85,
+                  strokeWidth: 8,
+                  backgroundColor: Colors.white.withOpacity(0.1),
+                  color: const Color(0xFF81DEEA),
+                  strokeCap: StrokeCap.round,
+                ),
+              ),
+              // Center Badge Icon
+              Container(
+                padding: const EdgeInsets.all(4),
+                decoration: const BoxDecoration(
+                  color: Colors.transparent,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons
+                      .verified, // Using verified icon to match the "badge" look
+                  color: Color(0xFF81DEEA),
+                  size: 30,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNextDoseCard() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1b2028),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Color(0xFF25353e),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(Icons.medication, color: Color(0xFF81DEEA)),
+              ),
+              const SizedBox(width: 15),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "NEXT DOSE",
+                      style: TextStyle(
+                        color: Colors.white70,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      "Metformin 500mg",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              minimumSize: const Size(double.infinity, 45),
+              backgroundColor: const Color(0xFF81DEEA),
+              foregroundColor: Colors.black,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => MedicationVerificationScreen(
+                    medicineName: "Metformin 500mg",
+                  ),
+                ),
+              );
+            },
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.check_circle_outline, size: 20),
+                const SizedBox(width: 8),
+                const Text(
+                  "Mark as Taken",
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildScheduleItem(
+    String name,
+    String desc,
+    String status,
+    bool isTaken,
+  ) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: surfaceColor,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            isTaken ? Icons.check_circle : Icons.radio_button_unchecked,
+            color: isTaken ? Colors.greenAccent : Colors.white24,
+            size: 28,
+          ),
+          const SizedBox(width: 15),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  name,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    color: Colors.white,
+                  ),
+                ),
+                Text(
+                  desc,
+                  style: const TextStyle(color: Colors.white54, fontSize: 12),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+              color: isTaken
+                  ? Colors.greenAccent.withOpacity(0.1)
+                  : Colors.white10,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              status,
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+                color: isTaken ? Colors.greenAccent : Colors.white54,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSmallVitalCard(
+    String title,
+    String value,
+    String unit,
+    IconData icon,
+    Color color,
+  ) {
+    return Container(
+      padding: const EdgeInsets.all(15),
+      decoration: BoxDecoration(
+        color: surfaceColor,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.white.withOpacity(0.05)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, color: color, size: 22),
+          const SizedBox(height: 8),
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 11,
+              color: Colors.white54,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 2),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: RichText(
+              text: TextSpan(
+                children: [
+                  TextSpan(
+                    text: value,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  TextSpan(
+                    text: " $unit",
+                    style: const TextStyle(fontSize: 10, color: Colors.white38),
+                  ),
+                ],
+              ),
             ),
           ),
         ],
@@ -122,29 +475,66 @@ class _HomeScreenState extends State<HomeScreen> {
   PreferredSizeWidget _buildAppBar(Size size) {
     return AppBar(
       toolbarHeight: 80,
-      elevation: 0, // Set to 0 for a cleaner look
-      backgroundColor: Colors.white,
-      surfaceTintColor: Colors.transparent,
-      scrolledUnderElevation: 0,
+      elevation: 0,
+      backgroundColor: darkBg,
       automaticallyImplyLeading: false,
-      title: const _AppBarTitle(), // Extracted to its own const widget
-      actions: [_AppBarActions(size: size)],
-    );
-  }
-
-  Widget _buildImage(String path) {
-    return RepaintBoundary(
-      // 🔥 Isolates the image from the rest of the UI
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(8),
-        child: Image.asset(
-          path,
-          fit: BoxFit.cover,
-          cacheWidth: 600, // Prevents decoding huge images into memory
-        ),
+      title: Row(
+        children: [
+          const CircleAvatar(
+            backgroundColor: Colors.white10,
+            child: Icon(Icons.person, color: Colors.white),
+          ),
+          const SizedBox(width: 12),
+          const Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "Hello Shiva!",
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+              Text(
+                "Ready for your checkup?",
+                style: TextStyle(fontSize: 11, color: Colors.white54),
+              ),
+            ],
+          ),
+        ],
       ),
+      actions: [
+        IconButton(
+          onPressed: () {
+            // Handle notifications
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => NotificationScreen()),
+            );
+          },
+          icon: const Badge(
+            child: Icon(Icons.notifications_none, color: Colors.white),
+          ),
+        ),
+        const SizedBox(width: 10),
+      ],
     );
   }
+}
+
+Widget _buildImage(String path) {
+  return RepaintBoundary(
+    // 🔥 Isolates the image from the rest of the UI
+    child: ClipRRect(
+      borderRadius: BorderRadius.circular(8),
+      child: Image.asset(
+        path,
+        fit: BoxFit.cover,
+        cacheWidth: 600, // Prevents decoding huge images into memory
+      ),
+    ),
+  );
 }
 
 /// ✅ Optimization: Isolate the AppBar Title
@@ -229,7 +619,6 @@ class _AppBarActions extends StatelessWidget {
                     style: TextStyle(fontSize: 8, color: Colors.white),
                   ),
                 ),
-                
               ),
             ],
           ),
@@ -268,7 +657,7 @@ class _VitalsCard extends StatelessWidget {
             // Fixed size icon
             Image.asset(item["icon"], height: 24, width: 24),
             const SizedBox(width: 10),
-            
+
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -278,7 +667,7 @@ class _VitalsCard extends StatelessWidget {
                   /// 1. Title - Clips if too long
                   Text(
                     item["title"],
-                    
+
                     overflow: TextOverflow.clip,
                     style: const TextStyle(
                       fontSize: 13, // Slightly smaller for better fit
@@ -372,6 +761,7 @@ class _VitalsCard extends StatelessWidget {
     );
   }
 }
+
 /// ✅ Extracted static widgets
 class _ReportsCard extends StatelessWidget {
   const _ReportsCard();
@@ -472,8 +862,6 @@ class _ReportsCard extends StatelessWidget {
   }
 }
 
-
-
 class _AddReportCard extends StatefulWidget {
   const _AddReportCard({super.key});
 
@@ -500,7 +888,6 @@ class _AddReportCardState extends State<_AddReportCard> {
       ),
     );
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -840,6 +1227,124 @@ class _MediktoOverlappingCarouselState
             ),
           );
         }),
+      ),
+    );
+  }
+}
+
+class NextDoseFloatingReminder extends StatelessWidget {
+  final String medicineName;
+  final String countdown;
+  final String timeSlot;
+  final VoidCallback onTap;
+
+  const NextDoseFloatingReminder({
+    super.key,
+    required this.medicineName,
+    required this.countdown,
+    required this.timeSlot,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: const Color(
+            0xFF1A1C1E,
+          ).withAlpha(450), // Dark themed like image
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF5ce5f9).withAlpha(100),
+              blurRadius: 10,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            // Icon with the pink notification dot
+            Stack(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.alarm,
+                    color: Color(0xFF81DEEA),
+                    size: 24,
+                  ),
+                ),
+                Positioned(
+                  right: 2,
+                  top: 2,
+                  child: Container(
+                    height: 8,
+                    width: 8,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFF48FB1), // Pink dot
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(width: 15),
+            // Text Content
+            Expanded(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    "NEXT DOSE IN",
+                    style: TextStyle(
+                      color: Color(0xFF81DEEA),
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                  Text(
+                    countdown,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Medicine Name and Time
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  medicineName.toUpperCase(),
+                  style: const TextStyle(color: Colors.white70, fontSize: 10),
+                ),
+                Text(
+                  timeSlot,
+                  style: const TextStyle(
+                    color: Color(0xFFFFD54F), // Yellow/Gold time
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

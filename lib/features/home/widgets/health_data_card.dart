@@ -11,62 +11,75 @@ class HealthDataCard extends StatefulWidget {
 }
 
 class _HealthDataCardState extends State<HealthDataCard> {
+  static const Color surfaceColor = Color(0xFF1E1E1E);
+  static const Color accentCyan = Color(0xFF81DEEA);
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () => widget.onTap?.call(),
       child: Container(
-        padding: EdgeInsets.all(12),
-        height: 86,
-        width: 180,
+        padding: const EdgeInsets.all(12),
+        // ✅ No fixed height/width: allows parent Grid to control sizing
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(8),
-          boxShadow: [
-            BoxShadow(
-              color: Color(0xFFCCCCCC).withAlpha(50),
-              blurRadius: 2,
-              spreadRadius: 2,
-            ),
-          ],
+          color: surfaceColor,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.white.withOpacity(0.05)),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center, 
           children: [
+            // Icon
             Image.asset(widget.image ?? "", height: 24, width: 24),
-            SizedBox(width: MediaQuery.sizeOf(context).height * 0.01),
+            const SizedBox(width: 10),
+
+            // Text Content
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min, // ✅ Prevents vertical expansion
                 children: [
+                  // ✅ Title: No Maxlines, just Clip
                   Text(
                     widget.title ?? "",
-                    style: TextStyle(
-                      fontSize: 14,
+                    // softWrap:
+                    //     false, // 🔥 Prevents text from wrapping to next line
+                    overflow:
+                        TextOverflow.clip, // 🔥 Clips the text as requested
+                    style: const TextStyle(
+                      fontSize: 13, 
                       fontWeight: FontWeight.w600,
-                      color: Color(0xFF263238),
-                      overflow: TextOverflow.ellipsis,
+                      color: Colors.white,
                     ),
                   ),
-                  SizedBox(height: MediaQuery.sizeOf(context).height * 0.01),
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.add_circle,
-                        color: Color(0xFF213598),
-                        size: 24,
-                      ),
-                      SizedBox(width: 10),
-                      Text(
-                        "Add",
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w500,
-                          color: Color(0xFF213598),
+                  const SizedBox(
+                    height: 4,
+                  ), // Reduced spacing to prevent vertical overflow
+                  // ✅ Responsive Add Row
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: const [
+                        Icon(
+                          Icons.add_circle_outline,
+                          color: accentCyan,
+                          size: 18,
                         ),
-                      ),
-                    ],
+                        SizedBox(width: 6),
+                        Text(
+                          "Add",
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                            color: accentCyan,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),

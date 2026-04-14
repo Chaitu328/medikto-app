@@ -31,7 +31,7 @@ class _GenderOption extends StatelessWidget {
               border: Border.all(
                 width: 2,
                 color: isSelected
-                    ? const Color(0xFF213598) // 🔵 selected border
+                    ? Color(0xFF81DEEA) // 🔵 selected border
                     : const Color(0x8A555555),
               ),
             ),
@@ -42,7 +42,7 @@ class _GenderOption extends StatelessWidget {
                       width: 10,
                       decoration: const BoxDecoration(
                         shape: BoxShape.circle,
-                        color: Color(0xFF213598), // 🔵 inner dot
+                        color: Color(0xFF81DEEA), // 🔵 inner dot
                       ),
                     ),
                   )

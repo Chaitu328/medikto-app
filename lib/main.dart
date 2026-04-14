@@ -1,7 +1,54 @@
+// import 'package:flutter/material.dart';
+// import 'package:medikto/splash_screen.dart';
+
+// void main() {
+//   runApp(const MyApp());
+// }
+
+// class MyApp extends StatelessWidget {
+//   const MyApp({super.key});
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return MaterialApp(
+//       debugShowCheckedModeBanner: false,
+//       title: 'Medikto',
+
+//       // ✅ Apply Poppins globally
+//       theme: ThemeData(
+//         fontFamily: 'Poppins',
+//         textTheme: const TextTheme(
+//           bodyLarge: TextStyle(fontWeight: FontWeight.w400),
+//           bodyMedium: TextStyle(fontWeight: FontWeight.w400),
+//           titleLarge: TextStyle(fontWeight: FontWeight.w600),
+//           titleMedium: TextStyle(fontWeight: FontWeight.w500),
+//         ),
+//       ),
+
+//       home: const SplashScreen(),
+//     );
+//   }
+// }
+
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:medikto/splash_screen.dart';
 
 void main() {
+  // Ensure system overlays are set before the app runs
+  WidgetsFlutterBinding.ensureInitialized();
+
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness:
+          Brightness.light, // White icons for dark background
+      systemNavigationBarColor: Color(0xFF121212), // Match your darkBg
+      systemNavigationBarIconBrightness: Brightness.light,
+    ),
+  );
+
   runApp(const MyApp());
 }
 
@@ -10,18 +57,46 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Shared dark color constant
+    const Color darkBg = Color(0xFF121212);
+
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Medikto',
 
-      // ✅ Apply Poppins globally
+      // 🔥 DARK THEME CONFIGURATION
       theme: ThemeData(
+        useMaterial3: true,
+        brightness: Brightness.dark, // Prevents the white flash globally
         fontFamily: 'Poppins',
+        scaffoldBackgroundColor: darkBg,
+        canvasColor: darkBg, // Fixes white flash in bottom sheets & menus
+        // Ensure TextTheme remains legible
         textTheme: const TextTheme(
-          bodyLarge: TextStyle(fontWeight: FontWeight.w400),
-          bodyMedium: TextStyle(fontWeight: FontWeight.w400),
-          titleLarge: TextStyle(fontWeight: FontWeight.w600),
-          titleMedium: TextStyle(fontWeight: FontWeight.w500),
+          bodyLarge: TextStyle(
+            fontWeight: FontWeight.w400,
+            color: Colors.white,
+          ),
+          bodyMedium: TextStyle(
+            fontWeight: FontWeight.w400,
+            color: Colors.white70,
+          ),
+          titleLarge: TextStyle(
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
+          ),
+          titleMedium: TextStyle(
+            fontWeight: FontWeight.w500,
+            color: Colors.white70,
+          ),
+        ),
+
+        // Optional: Smooth out page transitions
+        pageTransitionsTheme: const PageTransitionsTheme(
+          builders: {
+            TargetPlatform.android: ZoomPageTransitionsBuilder(),
+            TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+          },
         ),
       ),
 

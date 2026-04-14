@@ -14,15 +14,20 @@ class AddPrescriptionFileScreen extends StatefulWidget {
 }
 
 class _AddPrescriptionFileScreenState extends State<AddPrescriptionFileScreen> {
+  // Theme Palette
+  static const Color darkBg = Color(0xFF121212);
+  static const Color surfaceColor = Color(0xFF1E1E1E);
+  static const Color accentCyan = Color(0xFF81DEEA);
+
   void _showBottomSheet(BuildContext context) {
     showModalBottomSheet(
-      backgroundColor: Colors.white,
-      constraints: BoxConstraints(maxWidth: double.infinity),
+      backgroundColor: surfaceColor,
+      constraints: const BoxConstraints(maxWidth: double.infinity),
       context: context,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (_) => ReportActionsSheet(
+      builder: (_) => const ReportActionsSheet(
         actions: [
           {"icon": Icons.photo, "title": "Choose from Gallery"},
           {"icon": Icons.camera_alt, "title": "Take a Photo"},
@@ -31,13 +36,21 @@ class _AddPrescriptionFileScreenState extends State<AddPrescriptionFileScreen> {
       ),
     );
   }
+
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.sizeOf(context);
 
     return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: CustomAppBar(title: "Prescription File"),
+      backgroundColor: darkBg,
+      appBar: CustomAppBar(
+        title: "Prescription File",
+        backgroundColor: darkBg,
+        titleStyle: const TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20),
         child: Column(
@@ -49,32 +62,77 @@ class _AddPrescriptionFileScreenState extends State<AddPrescriptionFileScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    SizedBox(height: size.height * 0.016),
+                    SizedBox(height: size.height * 0.02),
 
                     /// 🔹 NAME FIELD
                     _buildTextField(
                       title: "Medicine Name",
-                      hint: "Enter medicine name",
+                      hint: "Enter medicine name (e.g. Lipitor)",
                     ),
 
-                    /// 🔹 DESCRIPTION
+                    /// 🔹 DOSAGE FIELD
                     _buildTextField(
-                      title: "Dosage of Medication",
-                      hint: "Enter your dosage, timings, others",
+                      title: "Dosage & Instructions",
+                      hint: "e.g. 500mg, after breakfast",
+                      maxLines: 2,
                     ),
-                    SizedBox(height: size.height * 0.02),
+                    
+                    SizedBox(height: size.height * 0.01),
 
+                    // Ensure TimingsSection is updated for dark mode internally
                     const TimingsSection(),
-                    SizedBox(height: size.height * 0.02),
+                    
+                    SizedBox(height: size.height * 0.03),
 
-                    /// 🔹 UPLOAD IMAGE
+                    /// 🔹 INTERACTIVE UPLOAD AREA
                     GestureDetector(
                       onTap: () => _showBottomSheet(context),
-                      child: Center(
-                        child: Image.asset(
-                          "assets/images/upload-file.png",
-                          width: size.width * 0.85,
-                          fit: BoxFit.contain,
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 35,
+                          horizontal: 20,
+                        ),
+                        decoration: BoxDecoration(
+                          color: surfaceColor,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: accentCyan.withOpacity(0.2),
+                            width: 1.5,
+                          ),
+                        ),
+                        child: Column(
+                          children: [
+                            Container(
+                              height: 54,
+                              width: 54,
+                              decoration: BoxDecoration(
+                                color: accentCyan.withOpacity(0.1),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.upload_file_outlined,
+                                color: accentCyan,
+                                size: 30,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            const Text(
+                              "Upload Digital Prescription",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15,
+                              ),
+                            ),
+                            const Text(
+                              "JPG, PNG or PDF (Max 10MB)",
+                              style: TextStyle(
+                                color: Colors.white38,
+                                fontSize: 11,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
@@ -90,7 +148,7 @@ class _AddPrescriptionFileScreenState extends State<AddPrescriptionFileScreen> {
               ),
             ),
 
-            /// 🔹 BUTTON
+            /// 🔹 ACTION BUTTON
             CustomButton(
               onPressed: () => Navigator.pushAndRemoveUntil(
                 context,
@@ -99,16 +157,16 @@ class _AddPrescriptionFileScreenState extends State<AddPrescriptionFileScreen> {
                 ),
                 (route) => false,
               ),
-              buttonColor: Color(0xFF213598),
-              buttonText: "Add Report",
-              textStyle: TextStyle(
+              buttonColor: accentCyan,
+              buttonText: "Save Prescription",
+              textStyle: const TextStyle(
                 fontSize: 18,
-                fontWeight: FontWeight.w700,
-                color: Color(0xFFffffff),
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
               ),
             ),
 
-            SizedBox(height: size.height * 0.02),
+            SizedBox(height: size.height * 0.03),
           ],
         ),
       ),
@@ -119,37 +177,35 @@ class _AddPrescriptionFileScreenState extends State<AddPrescriptionFileScreen> {
     required String title,
     required String hint,
     int maxLines = 1,
-    Color borderColor = const Color(0xA3555555),
-    Widget? suffix,
   }) {
     return AppTextFormFieldTitled(
       title: title,
       hintText: hint,
       maxLines: maxLines,
-      borderColor: borderColor,
-      focusColor: Colors.black,
-      fillColor: Colors.white,
+      borderColor: Colors.white10,
+      focusColor: accentCyan,
+      fillColor: surfaceColor,
       color: Colors.white,
-      suffix: suffix,
       hintStyle: const TextStyle(
-        fontSize: 16,
+        fontSize: 14,
         fontWeight: FontWeight.w400,
-        color: Color(0xA3555555),
+        color: Colors.white24,
       ),
       titleTextStyle: const TextStyle(
-        fontSize: 18,
+        fontSize: 14,
         fontWeight: FontWeight.w500,
-        color: Color(0xFF555555),
+        color: Colors.white70,
       ),
     );
   }
 
   Widget _buildAddMedicationCard() {
     return Container(
-      // padding: const EdgeInsets.fromLTRB(20, 16, 20, 10),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color(0xFFFFFFFF),
-        borderRadius: BorderRadius.circular(8),
+        color: surfaceColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white.withOpacity(0.05)),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -158,29 +214,30 @@ class _AddPrescriptionFileScreenState extends State<AddPrescriptionFileScreen> {
             children: [
               Container(
                 padding: const EdgeInsets.all(10),
-                height: 40,
-                width: 40,
+                height: 44,
+                width: 44,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFECF4FF),
-                  borderRadius: BorderRadius.circular(8),
+                  color: accentCyan.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                child: Image.asset(
-                  "assets/images/item2.png",
-                  color: const Color(0xFF213598),
+                child: const Icon(
+                  Icons.medication_liquid_rounded,
+                  color: accentCyan,
+                  size: 24,
                 ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 15),
               const Text(
-                "Add Medication",
+                "Add Another Medicine",
                 style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF263238),
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
                 ),
               ),
             ],
           ),
-          const Icon(Icons.add_circle, color: Color(0xFF213598), size: 40),
+          const Icon(Icons.add_circle, color: accentCyan, size: 36),
         ],
       ),
     );

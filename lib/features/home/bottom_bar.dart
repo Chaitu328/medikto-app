@@ -88,29 +88,50 @@ class _BaseBottomNavigationPageState extends State<BaseBottomNavigationPage> {
     final size = MediaQuery.sizeOf(context);
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Color(0xFF121212),
 
       /// 🔥 Smooth tab switching
-      body: IndexedStack(index: _currentIndex, children: _tabs),
+      body: Stack(
+        children: [
+          IndexedStack(index: _currentIndex, children: _tabs),
+          // --- FLOATING REMINDER ---
+          _currentIndex == 0
+              ? Positioned(
+                  bottom: size.height * 0.02, // Float it above the nav bar
+                  left: 0,
+                  right: 0,
+                  child: NextDoseFloatingReminder(
+                    medicineName: "Metformin",
+                    countdown: "04:12:35",
+                    timeSlot: "2:30 PM Today",
+                    onTap: () {
+                      // Open schedule or mark as taken
+                    },
+                  ),
+                )
+              : const SizedBox(),
+        ],
+      ),
 
       bottomNavigationBar: Stack(
+        
         alignment: Alignment.bottomCenter,
         children: [
           /// 🔹 Bottom Bar (unchanged UI)
           Container(
             decoration: BoxDecoration(
-              color: Colors.white,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey.shade100,
-                  blurRadius: 10,
-                  offset: const Offset(0, -2),
-                ),
-              ],
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(10),
-                topRight: Radius.circular(10),
-              ),
+              color: Color(0xFF121212),
+              // boxShadow: [
+              //   BoxShadow(
+              //     color: Color(0xFF5ce5f9),
+              //     blurRadius: 16,
+              //     offset: const Offset(0, -2),
+              //   ),
+              // ],
+              // borderRadius: const BorderRadius.only(
+              //   topLeft: Radius.circular(10),
+              //   topRight: Radius.circular(10),
+              // ),
             ),
             padding: const EdgeInsets.only(top: 10),
             child: Theme(
@@ -127,9 +148,9 @@ class _BaseBottomNavigationPageState extends State<BaseBottomNavigationPage> {
                 },
                 type: BottomNavigationBarType.fixed,
                 elevation: 0,
-                backgroundColor: Colors.white,
-                selectedItemColor: const Color(0xFF213598),
-                unselectedItemColor: const Color(0xFF5F6368),
+                backgroundColor: Color(0xFF121212),
+                selectedItemColor: const Color(0xFF76eafd),
+                unselectedItemColor: const Color(0xFF445767),
                 showSelectedLabels: true,
                 selectedLabelStyle: const TextStyle(
                   fontSize: 12,
@@ -145,6 +166,7 @@ class _BaseBottomNavigationPageState extends State<BaseBottomNavigationPage> {
                         ? Image.asset(
                             "assets/images/item1_selected.png",
                             width: 18,
+                            color: Color(0xFF5ce5f9),
                           )
                         : Image.asset("assets/images/item1.png", width: 18),
                     label: "Home",
@@ -154,8 +176,8 @@ class _BaseBottomNavigationPageState extends State<BaseBottomNavigationPage> {
                       "assets/images/item2.png",
                       width: 20,
                       color: _currentIndex == 1
-                          ? const Color(0xFF213598)
-                          : const Color(0xFF5F6368),
+                          ? const Color(0xFF5ce5f9)
+                          : const Color(0xFF445767),
                     ),
                     label: "Reports",
                   ),
@@ -168,8 +190,13 @@ class _BaseBottomNavigationPageState extends State<BaseBottomNavigationPage> {
                         ? Image.asset(
                             "assets/images/item3_selected.png",
                             width: 20,
+                            color: Color(0xFF5ce5f9),
                           )
-                        : Image.asset("assets/images/item3.png", width: 20),
+                        : Image.asset(
+                            "assets/images/item3.png",
+                            width: 20,
+                            color: Color(0xFF445767),
+                          ),
                     label: "Vitals",
                   ),
                   BottomNavigationBarItem(
@@ -177,8 +204,8 @@ class _BaseBottomNavigationPageState extends State<BaseBottomNavigationPage> {
                       "assets/images/item4.png",
                       width: 20,
                       color: _currentIndex == 3
-                          ? const Color(0xFF213598)
-                          : const Color(0xFF5F6368),
+                          ? const Color(0xFF5ce5f9)
+                          : const Color(0xFF445767),
                     ),
                     label: "Profile",
                   ),
@@ -197,75 +224,87 @@ class _BaseBottomNavigationPageState extends State<BaseBottomNavigationPage> {
                 height: 54,
                 width: 54,
                 decoration: const BoxDecoration(
-                  color: Color(0xFF213598),
+                  color: Color(0xFF5ce5f9),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.add, color: Colors.white, size: 30),
+                child: const Icon(Icons.add, color: Colors.black, size: 30),
               ),
             ),
           ),
+        
         ],
       ),
     );
   }
 
   /// 🔥 BottomSheet (optimized scrolling)
+/// 🔥 Updated Dark Mode BottomSheet
   void _openBottomSheet(BuildContext context, Size size) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.white,
+      backgroundColor:
+          Colors.transparent, // Required to show custom border radius
       builder: (context) {
         return Padding(
           padding: EdgeInsets.only(
             bottom: MediaQuery.of(context).viewInsets.bottom,
           ),
-          child: SingleChildScrollView(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(height: size.height * 0.01),
-                  Center(
-                    child: Container(
-                      height: 5,
-                      width: 50,
-                      color: const Color(0xFFCDCFD0),
+          child: Container(
+            decoration: const BoxDecoration(
+              color: Color(0xFF1E1E1E), // Dark Surface Color
+              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+            ),
+            child: SingleChildScrollView(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 12),
+                    Center(
+                      child: Container(
+                        height: 5,
+                        width: 50,
+                        decoration: BoxDecoration(
+                          color: Colors.white24,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
                     ),
-                  ),
-                  SizedBox(height: size.height * 0.02),
+                    const SizedBox(height: 25),
 
-                  /// 🔹 Health Data
-                  const Text(
-                    "Health Data",
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w500,
-                      color: Color(0xFF263238),
+                    /// 🔹 Health Data Header
+                    const Text(
+                      "Health Data",
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white, // White text for dark mode
+                      ),
                     ),
-                  ),
-                  SizedBox(height: size.height * 0.02),
+                    const SizedBox(height: 15),
 
-                  _buildGrid(healthData, true),
+                    _buildGrid(healthData, true),
 
-                  SizedBox(height: size.height * 0.02),
+                    const SizedBox(height: 25),
 
-                  /// 🔹 Health Records
-                  const Text(
-                    "Health Records",
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w500,
-                      color: Color(0xFF263238),
+                    /// 🔹 Health Records Header
+                    const Text(
+                      "Health Records",
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white, // White text for dark mode
+                      ),
                     ),
-                  ),
-                  SizedBox(height: size.height * 0.02),
+                    const SizedBox(height: 15),
 
-                  _buildGrid(healthRecords, false),
+                    _buildGrid(healthRecords, false),
 
-                  const SizedBox(height: 20),
-                ],
+                    const SizedBox(height: 30),
+                  ],
+                ),
               ),
             ),
           ),
@@ -273,7 +312,6 @@ class _BaseBottomNavigationPageState extends State<BaseBottomNavigationPage> {
       },
     );
   }
-
   /// 🔥 Reusable Grid (less rebuild cost)
   Widget _buildGrid(List<Map<String, String>> data, bool isHealthData) {
     return GridView.builder(

@@ -4,19 +4,23 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String? title;
   final bool? showBackButton;
   final VoidCallback? onBack;
+  final Color? backgroundColor;
+  final TextStyle? titleStyle;
 
   const CustomAppBar({
     super.key,
     required this.title,
     this.showBackButton = true,
     this.onBack,
+    this.backgroundColor,
+    this.titleStyle,
   });
 
   @override
   Widget build(BuildContext context) {
     return AppBar(
       toolbarHeight: 60,
-      backgroundColor: Colors.white,
+      backgroundColor: backgroundColor ?? Colors.white,
       elevation: 0,
       surfaceTintColor: Colors.transparent,
       scrolledUnderElevation: 0,
@@ -30,7 +34,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
               child: const Icon(
                 size: 20,
                 Icons.arrow_back_ios_new,
-                color: Color(0xFF3D3D3D),
+                color: Color(0xFFffffff),
               ),
             )
           : null,
@@ -41,10 +45,12 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
               padding: const EdgeInsets.only(left: 20),
               child: Text(
                 title ?? '',
-                style: const TextStyle(
+                style:
+                    titleStyle ??
+                    TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w500,
-                  color: Color(0xFF3D3D3D),
+                      color: Color(0xFFffffff),
                 ),
               ),
             )
@@ -53,7 +59,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
               style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w500,
-                color: Color(0xFF3D3D3D),
+                color: Color(0xFFffffff),
               ),
             ),
     );
