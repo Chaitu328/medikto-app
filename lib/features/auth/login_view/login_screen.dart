@@ -1,17 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:medikto/core/network/base_response.dart';
+import 'package:medikto/core/network/toast_utils.dart';
 import 'package:medikto/core/utils/widgets/custom_button.dart';
+import 'package:medikto/features/auth/data/providers/auth_providers.dart';
 import 'package:medikto/features/auth/login_view/otp_screen.dart';
 import 'package:medikto/features/auth/register_view/register_screen.dart';
 
-class LoginScreen extends StatefulWidget {
+class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenState extends ConsumerState<LoginScreen> {
   final TextEditingController phoneController = TextEditingController();
   bool isButtonEnabled = false;
 
@@ -37,6 +41,49 @@ class _LoginScreenState extends State<LoginScreen> {
   void dispose() {
     phoneController.dispose();
     super.dispose();
+  }
+
+  Future<void> handleLogin() async {
+    // 1. Show loading dialog
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) =>
+          const Center(child: CircularProgressIndicator(color: accentCyan)),
+    );
+
+    // 2. Call the manager through the provider
+    final response = await ref
+        .read(authProvider)
+        .performLogin(phoneController.text);
+
+    // 3. Pop loading dialog
+    if (mounted) Navigator.pop(context);
+
+    if (response.status == ResponseStatus.SUCCESS) {
+      AppToasts.showSuccess(context, response.message);
+      // 4. Navigate to OTP Screen
+      if (mounted) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const OtpScreen()),
+        );
+
+        print("Response Data:------------>>> ${response.data}");
+      }
+    } else {
+      // 5. Show error message
+      if (mounted) {
+        AppToasts.showError(context, response.message);
+        // ScaffoldMessenger.of(context).showSnackBar(
+        //   SnackBar(
+        //     content: Text(response.message),
+        //     backgroundColor: Colors.redAccent,
+        //   ),
+        // );
+        print("Response Data:------------>>> ${response.data}");
+      }
+    }
   }
 
   @override

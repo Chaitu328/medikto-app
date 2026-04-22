@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:medikto/core/utils/widgets/custom_appbar.dart';
 import 'package:medikto/core/utils/widgets/custom_button.dart';
 import 'package:medikto/features/home/add_reports/widgets/form_field_widget.dart';
-import 'package:medikto/features/home/bottom_bar.dart';
+import 'package:medikto/bottom_bar.dart';
 
 class AddBloodPressureScreen extends StatefulWidget {
   const AddBloodPressureScreen({super.key});

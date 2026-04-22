@@ -78,34 +78,34 @@ class OnboardingPage extends StatelessWidget {
           ),
         ),
 
-        Image.asset(data["image"]!),
+        Expanded(child: Image.asset(data["image"]!)),
 
         SizedBox(height: size.height * 0.02),
 
-        ValueListenableBuilder<int>(
-          valueListenable: currentIndex,
-          builder: (_, current, __) {
-            return Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(
-                total,
-                (i) => AnimatedContainer(
-                  duration: const Duration(milliseconds: 300),
-                  margin: const EdgeInsets.symmetric(horizontal: 4),
-                  height: 10,
-                  width: current == i ? 26 : 10,
-                  decoration: BoxDecoration(
-                    color: current == i
-                        ? accentCyan // Active indicator changed to Cyan
-                        : Colors
-                              .white24, // Inactive indicator changed to muted white
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-              ),
-            );
-          },
-        ),
+        // ValueListenableBuilder<int>(
+        //   valueListenable: currentIndex,
+        //   builder: (_, current, __) {
+        //     return Row(
+        //       mainAxisAlignment: MainAxisAlignment.center,
+        //       children: List.generate(
+        //         total,
+        //         (i) => AnimatedContainer(
+        //           duration: const Duration(milliseconds: 300),
+        //           margin: const EdgeInsets.symmetric(horizontal: 4),
+        //           height: 10,
+        //           width: current == i ? 26 : 10,
+        //           decoration: BoxDecoration(
+        //             color: current == i
+        //                 ? accentCyan // Active indicator changed to Cyan
+        //                 : Colors
+        //                       .white24, // Inactive indicator changed to muted white
+        //             borderRadius: BorderRadius.circular(10),
+        //           ),
+        //         ),
+        //       ),
+        //     );
+        //   },
+        // ),
       ],
     );
   }

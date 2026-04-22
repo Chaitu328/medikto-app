@@ -10,7 +10,7 @@ import 'package:medikto/features/home/home_view/home_screen.dart';
 import 'package:medikto/features/home/add_reports/health_records/add_medicine_reports.dart';
 import 'package:medikto/features/home/widgets/health_data_card.dart';
 import 'package:medikto/features/profile/views/profile_screen.dart';
-import 'package:medikto/features/reports/views/reports_screen.dart';
+import 'package:medikto/features/medications/views/medications_screen.dart';
 import 'package:medikto/features/vitals/views/vitals_screen.dart';
 
 class BaseBottomNavigationPage extends StatefulWidget {
@@ -27,7 +27,7 @@ class _BaseBottomNavigationPageState extends State<BaseBottomNavigationPage> {
   /// 🔥 Keep screens alive (NO rebuild → smooth UI)
   final List<Widget> _tabs = const [
     HomeScreen(),
-    ReportsScreen(),
+    MedicationsScreen(),
     VitalsScreen(),
     ProfileScreen(),
   ];
@@ -52,7 +52,6 @@ class _BaseBottomNavigationPageState extends State<BaseBottomNavigationPage> {
     {"name": "Prescription", "image": "assets/images/diabets-test.png"},
   ];
 
-
   Widget _getHealthDataScreen(int index) {
     switch (index) {
       case 0:
@@ -71,11 +70,11 @@ class _BaseBottomNavigationPageState extends State<BaseBottomNavigationPage> {
   Widget _getHealthRecordScreen(int index) {
     switch (index) {
       case 0:
-        return const AddMedicalReportsScreen();
+        return const AddMedicalMedicationsScreen();
       case 1:
-        return const AddVaccinationReportsScreen();
+        return const AddVaccinationMedicationsScreen();
       case 2:
-        return const AddLabReportsScreen();
+        return const AddLabMedicationsScreen();
       case 3:
         return const AddPrescriptionFileScreen();
       default:
@@ -94,27 +93,26 @@ class _BaseBottomNavigationPageState extends State<BaseBottomNavigationPage> {
       body: Stack(
         children: [
           IndexedStack(index: _currentIndex, children: _tabs),
-          // --- FLOATING REMINDER ---
-          _currentIndex == 0
-              ? Positioned(
-                  bottom: size.height * 0.02, // Float it above the nav bar
-                  left: 0,
-                  right: 0,
-                  child: NextDoseFloatingReminder(
-                    medicineName: "Metformin",
-                    countdown: "04:12:35",
-                    timeSlot: "2:30 PM Today",
-                    onTap: () {
-                      // Open schedule or mark as taken
-                    },
-                  ),
-                )
-              : const SizedBox(),
+          // // --- FLOATING REMINDER ---
+          // _currentIndex == 0
+          //     ? Positioned(
+          //         bottom: size.height * 0.02, // Float it above the nav bar
+          //         left: 0,
+          //         right: 0,
+          //         child: NextDoseFloatingReminder(
+          //           medicineName: "Metformin",
+          //           countdown: "04:12:35",
+          //           timeSlot: "2:30 PM Today",
+          //           onTap: () {
+          //             // Open schedule or mark as taken
+          //           },
+          //         ),
+          //       )
+          //     : const SizedBox(),
         ],
       ),
 
       bottomNavigationBar: Stack(
-        
         alignment: Alignment.bottomCenter,
         children: [
           /// 🔹 Bottom Bar (unchanged UI)
@@ -139,7 +137,7 @@ class _BaseBottomNavigationPageState extends State<BaseBottomNavigationPage> {
                 context,
               ).copyWith(splashFactory: NoSplash.splashFactory),
               child: BottomNavigationBar(
-                currentIndex: _currentIndex > 2
+                currentIndex: _currentIndex >= 2
                     ? _currentIndex + 1
                     : _currentIndex,
                 onTap: (index) {
@@ -179,7 +177,7 @@ class _BaseBottomNavigationPageState extends State<BaseBottomNavigationPage> {
                           ? const Color(0xFF5ce5f9)
                           : const Color(0xFF445767),
                     ),
-                    label: "Reports",
+                    label: "Medications",
                   ),
                   const BottomNavigationBarItem(
                     icon: SizedBox.shrink(),
@@ -231,14 +229,13 @@ class _BaseBottomNavigationPageState extends State<BaseBottomNavigationPage> {
               ),
             ),
           ),
-        
         ],
       ),
     );
   }
 
   /// 🔥 BottomSheet (optimized scrolling)
-/// 🔥 Updated Dark Mode BottomSheet
+  /// 🔥 Updated Dark Mode BottomSheet
   void _openBottomSheet(BuildContext context, Size size) {
     showModalBottomSheet(
       context: context,
@@ -312,6 +309,7 @@ class _BaseBottomNavigationPageState extends State<BaseBottomNavigationPage> {
       },
     );
   }
+
   /// 🔥 Reusable Grid (less rebuild cost)
   Widget _buildGrid(List<Map<String, String>> data, bool isHealthData) {
     return GridView.builder(

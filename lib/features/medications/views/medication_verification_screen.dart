@@ -1,4 +1,8 @@
+import 'dart:io';
+import 'dart:math';
+
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 class MedicationVerificationScreen extends StatefulWidget {
   final String medicineName;
@@ -14,6 +18,36 @@ class _MedicationVerificationScreenState
   static const Color darkBg = Color(0xFF121212);
   static const Color surfaceColor = Color(0xFF1E1E1E);
   static const Color accentCyan = Color(0xFF00E5FF);
+
+  File? capturedImage;
+  final ImagePicker _picker = ImagePicker();
+
+  Future<void> _captureProofImage() async {
+    final XFile? image = await _picker.pickImage(
+      source: ImageSource.camera,
+      imageQuality: 80,
+    );
+
+    if (image != null) {
+      setState(() {
+        capturedImage = File(image.path);
+      });
+    }
+  }
+
+  Future<void> _captureSelfie() async {
+    final image = await _picker.pickImage(
+      source: ImageSource.camera,
+      preferredCameraDevice: CameraDevice.front,
+      imageQuality: 80,
+    );
+
+    if (image != null) {
+      setState(() {
+        capturedImage = File(image.path);
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -62,9 +96,7 @@ class _MedicationVerificationScreenState
                     borderRadius: BorderRadius.circular(30),
                   ),
                 ),
-                onPressed: () {
-                  // Logic for capturing image
-                },
+                onPressed: () => _captureProofImage(),
                 icon: const Icon(Icons.camera_alt),
                 label: const Text(
                   "Verify with Selfie",
@@ -118,7 +150,7 @@ class _MedicationVerificationScreenState
                       style: TextStyle(
                         color: accentCyan,
                         fontSize: 12,
-                        decoration: TextDecoration.underline,
+                       
                       ),
                     ),
                   ),
@@ -144,61 +176,7 @@ class _MedicationVerificationScreenState
     );
   }
 
-  Widget _buildCameraFrame() {
-    return Container(
-      height: 350,
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: surfaceColor,
-        borderRadius: BorderRadius.circular(24),
-        image: const DecorationImage(
-          image: NetworkImage(
-            'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?q=80&w=1000&auto=format&fit=crop',
-          ), // Placeholder pill image
-          fit: BoxFit.cover,
-          opacity: 0.6,
-        ),
-      ),
-      child: Stack(
-        children: [
-          // Corner Brackets for Scanner look
-          _buildCorner(top: 20, left: 20, angle: 0),
-          _buildCorner(top: 20, right: 20, angle: 1.57),
-          _buildCorner(bottom: 20, left: 20, angle: 4.71),
-          _buildCorner(bottom: 20, right: 20, angle: 3.14),
-
-          // Instruction Overlay
-          Center(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-              decoration: BoxDecoration(
-                color: Colors.black54,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: accentCyan.withOpacity(0.5)),
-              ),
-              child: const Text(
-                "Position dose in frame",
-                style: TextStyle(
-                  color: accentCyan,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 12,
-                ),
-              ),
-            ),
-          ),
-
-          // Scanning Line Animation (Static for now)
-          Positioned(
-            top: 175,
-            left: 40,
-            right: 40,
-            child: Container(height: 2, color: accentCyan.withOpacity(0.5)),
-          ),
-        ],
-      ),
-    );
-  }
-
+  
   Widget _buildCorner({
     double? top,
     double? bottom,
@@ -331,4 +309,91 @@ class _MedicationVerificationScreenState
       ],
     );
   }
+
+
+Widget _buildCameraFrame() {
+    return Container(
+      height: 350,
+      width: double.infinity,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(24),
+        image: capturedImage != null
+            ? DecorationImage(
+                image: FileImage(capturedImage!),
+                fit: BoxFit.cover,
+              )
+            : null,
+        color: surfaceColor,
+      ),
+      child: Stack(
+        children: [
+          /// 🌫 Dark overlay for better contrast
+          Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(24),
+              color: Colors.black.withOpacity(
+                capturedImage != null ? 0.2 : 0.45,
+              ),
+            ),
+          ),
+
+          /// 🔥 CORNERS
+          _buildCorner(top: 0, left: 0, angle: 0),
+          _buildCorner(top: 0, right: 0, angle: 1.57),
+          _buildCorner(bottom: 0, left: 0, angle: 4.71),
+          _buildCorner(bottom: 0, right: 0, angle: 3.14),
+
+          /// 📷 CENTER CONTENT
+          if (capturedImage == null)
+            const Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.camera_alt, color: Colors.white54, size: 55),
+                  SizedBox(height: 10),
+                  Text(
+                    "Tap to capture proof",
+                    style: TextStyle(
+                      color: Colors.white54,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+          // /// 📌 BOTTOM INSTRUCTION
+          // Positioned(
+          //   bottom: 18,
+          //   left: 18,
+          //   right: 18,
+          //   child: Container(
+          //     padding: const EdgeInsets.symmetric(
+          //       horizontal: 16,
+          //       vertical: 10,
+          //     ),
+          //     decoration: BoxDecoration(
+          //       color: Colors.black.withOpacity(0.6),
+          //       borderRadius: BorderRadius.circular(16),
+          //       border: Border.all(
+          //         color: const Color(0xFF00E5FF).withOpacity(0.4),
+          //       ),
+          //     ),
+          //     child: const Text(
+          //       "Tap to capture proof of medication",
+          //       textAlign: TextAlign.center,
+          //       style: TextStyle(
+          //         color: Color(0xFF00E5FF),
+          //         fontSize: 12,
+          //         fontWeight: FontWeight.w600,
+          //       ),
+          //     ),
+          //   ),
+          // ),
+        ],
+      ),
+    );
+  }
+
+
 }

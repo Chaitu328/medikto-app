@@ -2,19 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:medikto/core/utils/widgets/custom_appbar.dart';
 import 'package:medikto/core/utils/widgets/custom_button.dart';
 import 'package:medikto/features/home/add_reports/widgets/form_field_widget.dart';
-import 'package:medikto/features/home/bottom_bar.dart';
-import 'package:medikto/features/reports/widgets/reports_action_sheet.dart';
+import 'package:medikto/bottom_bar.dart';
+import 'package:medikto/features/medications/widgets/reports_action_sheet.dart';
 
-class AddVaccinationReportsScreen extends StatefulWidget {
-  const AddVaccinationReportsScreen({super.key});
+class AddVaccinationMedicationsScreen extends StatefulWidget {
+  const AddVaccinationMedicationsScreen({super.key});
 
   @override
-  State<AddVaccinationReportsScreen> createState() =>
-      _AddVaccinationReportsScreenState();
+  State<AddVaccinationMedicationsScreen> createState() =>
+      _AddVaccinationMedicationsScreenState();
 }
 
-class _AddVaccinationReportsScreenState
-    extends State<AddVaccinationReportsScreen> {
+class _AddVaccinationMedicationsScreenState
+    extends State<AddVaccinationMedicationsScreen> {
   // Theme Palette
   static const Color darkBg = Color(0xFF121212);
   static const Color surfaceColor = Color(0xFF1E1E1E);

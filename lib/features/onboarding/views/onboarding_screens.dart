@@ -21,17 +21,17 @@ class _OnboardingScreensState extends State<OnboardingScreens> {
 
   final List<Map<String, String>> data = const [
     {
-      "image": "assets/images/vault-rafiki.png",
+      "image": "assets/images/onboarding1.png",
       "title": "Welcome to Medikto",
       "desc": "Your smart companion for timely medications and secure health records.",
     },
     {
-      "image": "assets/images/add-files-rafiki.png",
+      "image": "assets/images/onboarding2.png",
       "title": "Medikto – Medicine reminder app",
       "desc": "Upload, organize, and access anytime",
     },
     {
-      "image": "assets/images/security-rafiki.png",
+      "image": "assets/images/onboarding3.png",
       "title": "Your Data, Protected",
       "desc": "We ensure privacy with encryption",
     },
@@ -107,8 +107,6 @@ class _OnboardingScreensState extends State<OnboardingScreens> {
                     itemCount: data.length,
                     onPageChanged: (index) => currentIndex.value = index,
                     itemBuilder: (_, index) {
-                      // Note: Ensure OnboardingPage widget internally 
-                      // uses white text for titles and descriptions.
                       return OnboardingPage(
                         index: index,
                         data: data[index],
@@ -121,7 +119,32 @@ class _OnboardingScreensState extends State<OnboardingScreens> {
                   ),
                 ),
 
-                _buildBottomControls(size),
+// ✅ INDICATORS (FIXED POSITION)
+                ValueListenableBuilder<int>(
+                  valueListenable: currentIndex,
+                  builder: (_, current, __) {
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: List.generate(
+                        data.length,
+                        (i) => AnimatedContainer(
+                          duration: const Duration(milliseconds: 300),
+                          margin: const EdgeInsets.symmetric(horizontal: 4),
+                          height: 10,
+                          width: current == i ? 26 : 10,
+                          decoration: BoxDecoration(
+                            color: current == i ? accentCyan : Colors.white24,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+
+                SizedBox(height: size.height * 0.12),
+
+_buildBottomControls(size),
                 SizedBox(height: size.height * 0.02),
               ],
             ),

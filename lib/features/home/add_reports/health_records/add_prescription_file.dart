@@ -3,8 +3,8 @@ import 'package:medikto/core/utils/widgets/custom_appbar.dart';
 import 'package:medikto/core/utils/widgets/custom_button.dart';
 import 'package:medikto/core/utils/widgets/custom_textfields.dart';
 import 'package:medikto/features/home/add_reports/widgets/timings_widget.dart';
-import 'package:medikto/features/home/bottom_bar.dart';
-import 'package:medikto/features/reports/widgets/reports_action_sheet.dart';
+import 'package:medikto/bottom_bar.dart';
+import 'package:medikto/features/medications/widgets/reports_action_sheet.dart';
 
 class AddPrescriptionFileScreen extends StatefulWidget {
   const AddPrescriptionFileScreen({super.key});

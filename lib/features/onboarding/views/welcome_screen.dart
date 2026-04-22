@@ -63,7 +63,7 @@ class WelcomeScreen extends StatelessWidget {
                         child: Opacity(
                           opacity: 0.9,
                           child: Image.asset(
-                            'assets/images/public-health-amico.png',
+                            'assets/images/health-guard.png',
                             width: size.width * 0.75,
                             fit: BoxFit.contain,
                           ),

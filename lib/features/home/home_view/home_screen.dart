@@ -5,8 +5,9 @@ import 'package:medikto/core/utils/widgets/custom_textfields.dart';
 import 'package:medikto/features/home/add_reports/widgets/timings_widget.dart';
 import 'package:medikto/features/home/notifications/notification_screen.dart';
 import 'package:medikto/features/home/premium_plans_views/premium_plans.dart';
-import 'package:medikto/features/reports/views/medication_verification_screen.dart';
-import 'package:medikto/features/reports/widgets/reports_action_sheet.dart';
+import 'package:medikto/features/medications/views/medication_verification_screen.dart';
+import 'package:medikto/features/medications/widgets/medication_log_card.dart';
+import 'package:medikto/features/medications/widgets/reports_action_sheet.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -56,54 +57,93 @@ class _HomeScreenState extends State<HomeScreen> {
 
                 /// 1. ADHERENCE SCORE CARD (Dark Themed)
                 _buildAdherenceCard(),
+                
 
-                const SizedBox(height: 25),
+                const SizedBox(height: 20),
 
                 /// 2. NEXT DOSE QUICK ACTION
                 _buildNextDoseCard(),
+                // const SizedBox(height: 16),
 
+                // _buildPremiumCard(),
+
+                
                 const SizedBox(height: 16),
 
-                /// 3. TODAY'S SCHEDULE HEADER
+                
+               
+                /// 🔹 3. TODAY'S SCHEDULE HEADER
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      "Today's Schedule",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: const [
+                        Text(
+                          "Today's Schedule",
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                        SizedBox(height: 4),
+                        Text(
+                          "Tuesday, Oct 24",
+                          style: TextStyle(fontSize: 14, color: Colors.white38),
+                        ),
+                      ],
                     ),
                     TextButton(
                       onPressed: () {},
+                      style: TextButton.styleFrom(padding: EdgeInsets.zero),
                       child: const Text(
-                        "VIEW FULL",
+                        "VIEW ALL",
                         style: TextStyle(
-                          color: Color(0xFF81DEEA), // Cyan for dark mode
+                          color: Color(0xFF81DEEA), // Cyan
                           fontWeight: FontWeight.bold,
+                          letterSpacing: 1.1,
+                          fontSize: 14,
                         ),
                       ),
                     ),
                   ],
                 ),
+                SizedBox(height: 16),
 
                 /// 4. SCHEDULE LIST
-                _buildScheduleItem(
-                  "Vitamin D",
-                  "08:00 AM • 1 Capsule",
-                  "TAKEN",
-                  true,
+_buildScheduleItem(
+                  time: "7 AM",
+                  name: "Atorvastatin",
+                  desc: "20mg Tablet",
+                  status: "MISSED",
+                  // A slightly stronger tint for missed background
+                  color: Colors.redAccent,
                 ),
                 _buildScheduleItem(
-                  "Lisinopril",
-                  "09:00 PM • 10mg",
-                  "LATER",
-                  false,
+                  time: "8 AM",
+                  name: "Vitamin D3",
+                  desc: "1000 IU Capsule",
+                  status: "TAKEN",
+                  subStatus: "Logged at 8:04 AM",
+                  color: const Color(0xFF81DEEA), // Cyan
                 ),
-
-                const SizedBox(height: 25),
+                _buildScheduleItem(
+                  time: "2 PM",
+                  name: "Metformin",
+                  desc: "500mg Oral",
+                  status: "UPCOMING",
+                  color: Colors.orangeAccent,
+                ),
+                _buildScheduleItem(
+                  time: "9 PM",
+                  name: "Lisinopril",
+                  desc: "10mg Tablet",
+                  status: "LATER",
+                  color: Colors.white24, // Muted grey for later
+                ),
+                const SizedBox(height: 10),
 
                 const Text(
                   "Quick Health Look",
@@ -113,7 +153,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     color: Colors.white,
                   ),
                 ),
-                const SizedBox(height: 15),
+                const SizedBox(height: 10),
               ]),
             ),
           ),
@@ -272,6 +312,17 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
+  Widget _buildPremiumCard() {
+    return _AnimatedPremiumCard(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const PremiumPlansScreen()),
+        );
+      },
+    );
+  }
+
 
   Widget _buildNextDoseCard() {
     return Container(
@@ -355,68 +406,153 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildScheduleItem(
-    String name,
-    String desc,
-    String status,
-    bool isTaken,
-  ) {
+Widget _buildScheduleItem({
+    required String time,
+    required String name,
+    required String desc,
+    required String status,
+    String? subStatus,
+    required Color color,
+  }) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: surfaceColor,
+        // 🔹 Tinted Background: surfaceColor mixed with a hint of status color
+        color: Color.alphaBlend(
+          color.withOpacity(0.08),
+          const Color(0xFF1E1E1E),
+        ),
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: color.withOpacity(0.1), // Subtle border glow
+          width: 1,
       ),
+      ),
+      child: IntrinsicHeight(
       child: Row(
         children: [
-          Icon(
-            isTaken ? Icons.check_circle : Icons.radio_button_unchecked,
-            color: isTaken ? Colors.greenAccent : Colors.white24,
-            size: 28,
-          ),
-          const SizedBox(width: 15),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  name,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                    color: Colors.white,
-                  ),
+            // 🔹 Left Thick Accent Strip
+            Container(
+              width: 5,
+              margin: const EdgeInsets.symmetric(vertical: 14),
+              decoration: BoxDecoration(
+                color: color,
+                borderRadius: const BorderRadius.horizontal(
+                  right: Radius.circular(4),
                 ),
-                Text(
-                  desc,
-                  style: const TextStyle(color: Colors.white54, fontSize: 12),
-                ),
-              ],
+              ),
             ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              color: isTaken
-                  ? Colors.greenAccent.withOpacity(0.1)
-                  : Colors.white10,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Text(
-              status,
-              style: TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.bold,
-                color: isTaken ? Colors.greenAccent : Colors.white54,
+
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    // 🔹 Time Section
+                    SizedBox(
+                      width: 45,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            time,
+                            style: TextStyle(
+                              color: color.withOpacity(0.9),
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Container(
+                            height: 6,
+                            width: 6,
+                            decoration: BoxDecoration(
+                              color: color,
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: color.withOpacity(0.4),
+                                  blurRadius: 4,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 15),
+
+                    // 🔹 Medication Info
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            name,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text(
+                            desc,
+                            style: const TextStyle(
+                              color: Colors.white38,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    // 🔹 Status Badge
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: color.withOpacity(0.15),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            status,
+                            style: TextStyle(
+                              color: color,
+                              fontSize: 10,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ),
+                        if (subStatus != null) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            subStatus,
+                            style: const TextStyle(
+                              color: Colors.white24,
+                              fontSize: 9,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ],
               ),
             ),
           ),
         ],
       ),
+      ),
     );
   }
-
+ 
   Widget _buildSmallVitalCard(
     String title,
     String value,
@@ -523,344 +659,6 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-Widget _buildImage(String path) {
-  return RepaintBoundary(
-    // 🔥 Isolates the image from the rest of the UI
-    child: ClipRRect(
-      borderRadius: BorderRadius.circular(8),
-      child: Image.asset(
-        path,
-        fit: BoxFit.cover,
-        cacheWidth: 600, // Prevents decoding huge images into memory
-      ),
-    ),
-  );
-}
-
-/// ✅ Optimization: Isolate the AppBar Title
-class _AppBarTitle extends StatelessWidget {
-  const _AppBarTitle();
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: const [
-            Text(
-              "Hello",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
-            ),
-            SizedBox(width: 8),
-            Icon(Icons.favorite, color: Color(0xFFF28F8F), size: 20),
-            SizedBox(width: 8),
-            Text(
-              "Shiva Sai",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
-            ),
-          ],
-        ),
-        const Text(
-          "wishing you a healthy day!",
-          style: TextStyle(
-            fontSize: 10,
-            fontWeight: FontWeight.w400,
-            color: Color(0xD6263238),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-/// ✅ Optimization: Isolate AppBar Actions
-class _AppBarActions extends StatelessWidget {
-  final Size size;
-  const _AppBarActions({required this.size});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(right: 20),
-      child: Row(
-        children: [
-          GestureDetector(
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const PremiumPlansScreen()),
-            ),
-            child: Image.asset(
-              "assets/images/try-premium-button.png",
-              width: 130,
-              cacheWidth: 260,
-            ),
-          ),
-          const SizedBox(width: 15),
-          Stack(
-            children: [
-              Image.asset(
-                "assets/images/notification-button.png",
-                width: 20,
-                cacheWidth: 40,
-              ),
-              Positioned(
-                top: 0,
-                right: 0,
-                child: Container(
-                  alignment: Alignment.center,
-                  height: 10,
-                  width: 10,
-                  decoration: const BoxDecoration(
-                    color: Colors.red,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Text(
-                    "2",
-                    style: TextStyle(fontSize: 8, color: Colors.white),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// ✅ Separate widget = less rebuild = smooth UI
-class _VitalsCard extends StatelessWidget {
-  final Map<String, dynamic> item;
-  final Size size;
-
-  const _VitalsCard({required this.item, required this.size});
-
-  @override
-  Widget build(BuildContext context) {
-    return RepaintBoundary(
-      child: Container(
-        padding: const EdgeInsets.all(10), // Simplified padding
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(8),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFFCCCCCC).withAlpha(80),
-              blurRadius: 4,
-              spreadRadius: 1,
-            ),
-          ],
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Fixed size icon
-            Image.asset(item["icon"], height: 24, width: 24),
-            const SizedBox(width: 10),
-
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment:
-                    MainAxisAlignment.spaceBetween, // Distributes space evenly
-                children: [
-                  /// 1. Title - Clips if too long
-                  Text(
-                    item["title"],
-
-                    overflow: TextOverflow.clip,
-                    style: const TextStyle(
-                      fontSize: 13, // Slightly smaller for better fit
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF263238),
-                    ),
-                  ),
-
-                  /// 2. Value + Unit - Scales to fit width
-                  FittedBox(
-                    fit: BoxFit.scaleDown,
-                    alignment: Alignment.centerLeft,
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.baseline,
-                      textBaseline: TextBaseline.alphabetic,
-                      children: [
-                        Text(
-                          item["value"],
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
-                            color: Color(0xFF213598),
-                          ),
-                        ),
-                        const SizedBox(width: 2),
-                        Text(
-                          item["unit"],
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: Color(0xD6263238),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  /// 3. Status Row - Flexible sizing
-                  Row(
-                    children: [
-                      const Text(
-                        "Status",
-                        style: TextStyle(fontSize: 10, color: Colors.grey),
-                      ),
-                      const SizedBox(width: 4),
-                      Flexible(
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFEDF7E6),
-                            border: Border.all(
-                              color: const Color(0xFF44AB42),
-                              width: 0.5,
-                            ),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: const [
-                              Icon(
-                                Icons.check_circle,
-                                size: 8,
-                                color: Color(0xFF44AB42),
-                              ),
-                              SizedBox(width: 2),
-                              Flexible(
-                                child: Text(
-                                  "Normal",
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                    fontSize: 9,
-                                    fontWeight: FontWeight.w500,
-                                    color: Color(0xFF44AB42),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// ✅ Extracted static widgets
-class _ReportsCard extends StatelessWidget {
-  const _ReportsCard();
-
-  @override
-  Widget build(BuildContext context) {
-    return RepaintBoundary(
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(20, 16, 20, 10),
-        height: 100,
-        width: double.infinity,
-        decoration: BoxDecoration(
-          color: const Color(0xFFFFFFFF),
-          borderRadius: BorderRadius.circular(8),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFFCCCCCC).withAlpha(50),
-              blurRadius: 2,
-              spreadRadius: 2,
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            /// LEFT SIDE
-            Expanded(
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    height: 40,
-                    width: 40,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFECF4FF),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Image.asset(
-                      "assets/images/item2.png",
-                      color: const Color(0xFF213598),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: const [
-                      Text(
-                        "All Reports",
-                        style: TextStyle(fontWeight: FontWeight.w600),
-                      ),
-                      Text(
-                        "16",
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-
-            /// DIVIDER
-            Container(width: 1, color: Colors.grey.shade200),
-
-            /// RIGHT SIDE
-            Expanded(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: const [
-                      Text(
-                        "Newly Added",
-                        style: TextStyle(fontWeight: FontWeight.w600),
-                      ),
-                      Text(
-                        "6",
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(width: 10),
-                  const Icon(Icons.arrow_forward_ios_outlined, size: 18),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
 
 class _AddReportCard extends StatefulWidget {
   const _AddReportCard({super.key});
@@ -1345,6 +1143,151 @@ class NextDoseFloatingReminder extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+
+class _AnimatedPremiumCard extends StatefulWidget {
+  final VoidCallback onTap;
+
+  const _AnimatedPremiumCard({required this.onTap});
+
+  @override
+  State<_AnimatedPremiumCard> createState() => _AnimatedPremiumCardState();
+}
+
+class _AnimatedPremiumCardState extends State<_AnimatedPremiumCard>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 3),
+    )..repeat(); // smooth infinite loop
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return RepaintBoundary(
+      child: AnimatedBuilder(
+        animation: _controller,
+        builder: (_, __) {
+          return Container(
+            margin: const EdgeInsets.only(bottom: 4),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              gradient: SweepGradient(
+                colors: const [
+                  Color(0xFF81DEEA),
+                  Color(0xFF4D6AFF),
+                  Color(0xFF81DEEA),
+                ],
+                stops: const [0.0, 0.5, 1.0],
+                transform: GradientRotation(_controller.value * 6.28),
+              ),
+            ),
+            child: Container(
+              margin: const EdgeInsets.all(1.5), // border thickness
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: const Color(0xFF1E1E1E),
+                borderRadius: BorderRadius.circular(18),
+              ),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(18),
+                onTap: widget.onTap,
+                child: Row(
+                  children: [
+                    /// 🔥 PREMIUM ICON (Glow effect)
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: const Color(0xFF81DEEA).withAlpha(50),
+                      ),
+                      child: const Icon(
+                        Icons.workspace_premium,
+                        color: Color(0xFF81DEEA),
+                        size: 26,
+                      ),
+                    ),
+
+                    const SizedBox(width: 14),
+
+                    /// 🔹 TEXT
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: const [
+                          Text(
+                            "Go Premium",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          SizedBox(height: 4),
+                          Text(
+                            "Unlock insights, smart alerts & reports",
+                            style: TextStyle(
+                              color: Colors.white54,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    /// 🔹 CTA (Better UX)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF81DEEA), Color(0xFF4D6AFF)],
+                        ),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: const Row(
+                        children: [
+                          Text(
+                            "UPGRADE",
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 11,
+                            ),
+                          ),
+                          SizedBox(width: 4),
+                          Icon(
+                            Icons.arrow_forward_ios,
+                            size: 10,
+                            color: Colors.black,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
       ),
     );
   }

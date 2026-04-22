@@ -2,17 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:medikto/core/utils/widgets/custom_appbar.dart';
 import 'package:medikto/core/utils/widgets/custom_button.dart';
 import 'package:medikto/core/utils/widgets/custom_textfields.dart';
-import 'package:medikto/features/home/bottom_bar.dart';
-import 'package:medikto/features/reports/widgets/reports_action_sheet.dart';
+import 'package:medikto/bottom_bar.dart';
+import 'package:medikto/features/medications/widgets/reports_action_sheet.dart';
 
-class AddLabReportsScreen extends StatefulWidget {
-  const AddLabReportsScreen({super.key});
+class AddLabMedicationsScreen extends StatefulWidget {
+  const AddLabMedicationsScreen({super.key});
 
   @override
-  State<AddLabReportsScreen> createState() => _AddLabReportsScreenState();
+  State<AddLabMedicationsScreen> createState() =>
+      _AddLabMedicationsScreenState();
 }
 
-class _AddLabReportsScreenState extends State<AddLabReportsScreen> {
+class _AddLabMedicationsScreenState extends State<AddLabMedicationsScreen> {
   // Dark Mode Palette
   static const Color darkBg = Color(0xFF121212);
   static const Color surfaceColor = Color(0xFF1E1E1E);

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:medikto/features/home/bottom_bar.dart';
+import 'package:medikto/bottom_bar.dart';
 import 'package:pinput/pinput.dart';
 
 class OtpScreen extends StatefulWidget {

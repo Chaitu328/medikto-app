@@ -33,6 +33,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:medikto/splash_screen.dart';
 
 void main() {
@@ -49,7 +50,7 @@ void main() {
     ),
   );
 
-  runApp(const MyApp());
+  runApp(ProviderScope(child: const MyApp()));
 }
 
 class MyApp extends StatelessWidget {

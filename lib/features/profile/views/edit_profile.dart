@@ -1,7 +1,12 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:medikto/core/network/toast_utils.dart';
 import 'package:medikto/core/utils/widgets/custom_button.dart';
 import 'package:medikto/core/utils/widgets/custom_textfields.dart';
 import 'package:medikto/features/auth/widgets/gender_selection_widget.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -16,6 +21,94 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   static const Color surfaceColor = Color(0xFF1E1E1E);
   static const Color accentCyan = Color(0xFF81DEEA);
   static const Color primaryBlue = Color(0xFF213598);
+  File? selectedImage;
+  final ImagePicker _picker = ImagePicker();
+
+  void _showImagePickerSheet() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: surfaceColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) {
+        return Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                "Select Profile Image",
+                style: TextStyle(color: Colors.white, fontSize: 18),
+              ),
+              const SizedBox(height: 20),
+
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  _sheetOption(Icons.camera_alt, "Camera", () {
+                    Navigator.pop(context);
+                    _pickImage(ImageSource.camera);
+                  }),
+                  _sheetOption(Icons.photo, "Gallery", () {
+                    Navigator.pop(context);
+                    _pickImage(ImageSource.gallery);
+                  }),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _pickImage(ImageSource source) async {
+    // 🔥 Request permission
+    if (source == ImageSource.camera) {
+      var status = await Permission.camera.request();
+      if (!status.isGranted) {
+        AppToasts.showError(context, "Camera permission denied");
+        return;
+      }
+    } else {
+      var status = await Permission.photos.request();
+      if (!status.isGranted) {
+        AppToasts.showError(context, "Gallery permission denied");
+        return;
+      }
+    }
+
+    // 🔥 Pick image
+    final picked = await _picker.pickImage(source: source, imageQuality: 70);
+
+    if (picked != null) {
+      setState(() {
+        selectedImage = File(picked.path);
+      });
+    } else {
+      debugPrint("No image selected");
+    }
+  }
+
+  Widget _sheetOption(IconData icon, String title, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        children: [
+          CircleAvatar(
+            radius: 28,
+            backgroundColor: accentCyan,
+            child: Icon(icon, color: Colors.black),
+          ),
+          const SizedBox(height: 8),
+          Text(title, style: const TextStyle(color: Colors.white70)),
+        ],
+      ),
+    );
+  }
+  
+  
 
   @override
   Widget build(BuildContext context) {
@@ -63,49 +156,68 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   /// 🔹 Profile Image (Dark Mode Styling)
                   Align(
                     alignment: Alignment.center,
-                    child: Stack(
-                      children: [
-                        Container(
-                          height: 120,
-                          width: 120,
-                          decoration: BoxDecoration(
-                            color: surfaceColor,
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white10, width: 2),
-                          ),
-                          child: const Icon(
-                            Icons.person,
-                            size: 60,
-                            color: Colors.white24,
-                          ),
-                        ),
-                        Positioned(
-                          bottom: 5,
-                          right: 5,
-                          child: Container(
-                            height: 34,
-                            width: 34,
+                    child: GestureDetector(
+                      onTap: _showImagePickerSheet, // 👈 OPEN BOTTOM SHEET
+                      child: Stack(
+                        children: [
+                          Container(
+                            height: 120,
+                            width: 120,
                             decoration: BoxDecoration(
-                              color: accentCyan,
+                              color: surfaceColor,
                               shape: BoxShape.circle,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.3),
-                                  blurRadius: 5,
-                                ),
-                              ],
+                              border: Border.all(
+                                color: Colors.white10,
+                                width: 2,
+                              ),
+
+                              /// 🔥 SHOW IMAGE IF SELECTED
+                              image: selectedImage != null
+                                  ? DecorationImage(
+                                      image: FileImage(selectedImage!),
+                                      fit: BoxFit.cover,
+                                    )
+                                  : null,
                             ),
-                            child: const Icon(
-                              Icons.camera_alt,
-                              size: 18,
-                              color: Colors.black,
+
+                            /// 🔥 DEFAULT ICON IF NO IMAGE
+                            child: selectedImage == null
+                                ? const Icon(
+                                    Icons.person,
+                                    size: 60,
+                                    color: Colors.white24,
+                                  )
+                                : null,
+                          ),
+
+                          /// 🔥 CAMERA BUTTON
+                          Positioned(
+                            bottom: 5,
+                            right: 5,
+                            child: Container(
+                              height: 34,
+                              width: 34,
+                              decoration: BoxDecoration(
+                                color: accentCyan,
+                                shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.3),
+                                    blurRadius: 5,
+                                  ),
+                                ],
+                              ),
+                              child: const Icon(
+                                Icons.camera_alt,
+                                size: 18,
+                                color: Colors.black,
+                              ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-
+),
                   SizedBox(height: screenSize.height * 0.04),
 
                   const Text(

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:medikto/features/reports/widgets/reports_action_sheet.dart';
+import 'package:medikto/features/medications/widgets/reports_action_sheet.dart';
 
 class ReportCard extends StatelessWidget {
   const ReportCard({super.key});

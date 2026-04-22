@@ -62,7 +62,7 @@ class _OverrallFeaturesScreenState extends State<OverrallFeaturesScreen> {
 
                         // Illustration
                         Image.asset(
-                          'assets/images/public-health-amico.png',
+                          'assets/images/health-guard.png',
                           width: 280,
                           height: 280,
                           fit: BoxFit.contain,
