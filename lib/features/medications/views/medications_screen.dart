@@ -1,7 +1,22 @@
 import 'package:flutter/material.dart';
-import 'package:medikto/core/utils/widgets/custom_appbar.dart';
 import 'package:medikto/features/home/notifications/notification_screen.dart';
 import 'package:medikto/features/medications/views/medication_verification_screen.dart';
+
+class TimelineMedicine {
+  String time;
+  String title;
+  String sub;
+  IconData icon;
+  bool isTaken;
+
+  TimelineMedicine({
+    required this.time,
+    required this.title,
+    required this.sub,
+    required this.icon,
+    this.isTaken = false,
+  });
+}
 
 class MedicationsScreen extends StatefulWidget {
   const MedicationsScreen({super.key});
@@ -16,6 +31,30 @@ class _MedicationsScreenState extends State<MedicationsScreen> {
   static const Color surfaceColor = Color(0xFF1E1E1E); // Elevated Grey
   static const Color accentCyan = Color(0xFF81DEEA); // Branding Cyan
   static const Color dangerRed = Color(0xFFE57373); // Critical Alerts
+
+  List<TimelineMedicine> medicines = [
+    TimelineMedicine(
+      time: "08:30 AM",
+      title: "Atorvastatin 10mg",
+      sub: "Cholesterol • Post-breakfast",
+      icon: Icons.medication_rounded,
+      isTaken: true,
+    ),
+    TimelineMedicine(
+      time: "12:00 PM",
+      title: "Vitamin C 500mg",
+      sub: "Immune Support • With lunch",
+      icon: Icons.vaccines_rounded,
+    ),
+    TimelineMedicine(
+      time: "08:00 PM",
+      title: "Multivitamin",
+      sub: "Wellness • Before sleep",
+      icon: Icons.inventory_2_outlined,
+    ),
+  ];
+
+  
 
   @override
   Widget build(BuildContext context) {
@@ -83,55 +122,47 @@ class _MedicationsScreenState extends State<MedicationsScreen> {
             SliverPadding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               sliver: SliverList(
-                delegate: SliverChildListDelegate([
-                  // TAKEN Item
-                  _buildTimelineItem(
-                    time: "08:30 AM",
-                    title: "Atorvastatin 10mg",
-                    sub: "Cholesterol • Post-breakfast",
-                    icon: Icons.medication_rounded,
-                    isTaken: true,
-                    isLast: false,
-                  ),
-                  // UPCOMING Item
-                  _buildTimelineItem(
-                    time: "12:00 PM",
-                    title: "Vitamin C 500mg",
-                    sub: "Immune Support • With lunch",
-                    icon: Icons.vaccines_rounded,
-                    isTaken: false,
-                    isUpcoming: true,
-                    isLast: false,
-                  ),
-                  // General Wellness Item
-                  _buildTimelineItem(
-                    time: "08:00 PM",
-                    title: "Multivitamin",
-                    sub: "Wellness • Before sleep",
-                    icon: Icons.inventory_2_outlined,
-                    isTaken: false,
-                    isLast: true,
-                  ),
-                ]),
-              ),
-            ),
+                delegate: SliverChildBuilderDelegate((context, index) {
+                  final item = medicines[index];
 
-            /// 🔹 5. REFILL & NOTES (Responsive Grid)
-            SliverPadding(
-              padding: const EdgeInsets.all(20),
-              sliver: SliverGrid(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  mainAxisSpacing: 15,
-                  crossAxisSpacing: 15,
-                  mainAxisExtent: 140, // Increased for long text safety
-                ),
-                delegate: SliverChildListDelegate([
-                  _buildRefillCard(),
-                  _buildDoctorNoteCard(),
-                ]),
+                  // ✅ Only next un-taken item is enabled
+                  bool isCurrent =
+                      index == medicines.indexWhere((e) => !e.isTaken);
+
+                  return _buildAdvancedTimelineItem(
+                    item: item,
+                    isLast: index == medicines.length - 1,
+                    isCurrent: isCurrent,
+                    onMarkTaken: () {
+                      setState(() {
+                        medicines[index].isTaken = true;
+                      });
+                    },
+                  );
+                }, childCount: medicines.length),
               ),
             ),
+            const SliverToBoxAdapter(child: SizedBox(height: 15)),
+
+            /// ✅ PLACE IT HERE
+            SliverToBoxAdapter(child: _buildAddMedicationCard()),
+            
+            /// 🔹 5. REFILL & NOTES (Responsive Grid)
+            // SliverPadding(
+            //   padding: const EdgeInsets.all(20),
+            //   sliver: SliverGrid(
+            //     gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            //       crossAxisCount: 2,
+            //       mainAxisSpacing: 15,
+            //       crossAxisSpacing: 15,
+            //       mainAxisExtent: 140, // Increased for long text safety
+            //     ),
+            //     delegate: SliverChildListDelegate([
+            //       _buildRefillCard(),
+            //       _buildDoctorNoteCard(),
+            //     ]),
+            //   ),
+            // ),
 
             const SliverToBoxAdapter(
               child: SizedBox(height: 100),
@@ -434,101 +465,348 @@ class _MedicationsScreenState extends State<MedicationsScreen> {
     );
   }
 
-  /// 🔹 REFILL CARD
-  Widget _buildRefillCard() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: surfaceColor,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+
+Widget _buildAdvancedTimelineItem({
+    required TimelineMedicine item,
+    required bool isLast,
+    required bool isCurrent,
+    required VoidCallback onMarkTaken,
+  }) {
+    bool isTaken = item.isTaken;
+
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text(
-            "REFILL STATUS",
-            style: TextStyle(
-              color: Colors.white38,
-              fontSize: 10,
-              fontWeight: FontWeight.bold,
-            ),
+          /// 🔹 LEFT TIMELINE INDICATOR
+          Column(
+            children: [
+              Container(
+                margin: const EdgeInsets.only(top: 8),
+                height: 24,
+                width: 24,
+                decoration: BoxDecoration(
+                  color: isTaken
+                      ? accentCyan
+                      : isCurrent
+                      ? accentCyan.withOpacity(0.1)
+                      : Colors.transparent,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: accentCyan.withOpacity(0.5)),
+                ),
+                child: isTaken
+                    ? const Icon(Icons.check, size: 16, color: Colors.black)
+                    : null,
+              ),
+              if (!isLast)
+                Expanded(child: Container(width: 2, color: Colors.white10)),
+            ],
           ),
-          // const Spacer(),
-          SizedBox(height: 16),
-          const Text(
-            "12 days left",
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 10),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(10),
-            child: const LinearProgressIndicator(
-              value: 0.7,
-              minHeight: 8,
-              backgroundColor: Colors.white10,
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.redAccent),
+
+          const SizedBox(width: 20),
+
+          /// 🔹 CARD
+          Expanded(
+            child: Container(
+              margin: const EdgeInsets.only(bottom: 16),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: surfaceColor,
+                borderRadius: BorderRadius.circular(16),
+                border: isCurrent
+                    ? Border.all(color: accentCyan.withOpacity(0.3))
+                    : null,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  /// TITLE + TIME
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        item.title,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        item.time,
+                        style: TextStyle(
+                          color: isTaken
+                              ? accentCyan
+                              : isCurrent
+                              ? accentCyan.withOpacity(0.7)
+                              : Colors.white38,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 4),
+
+                  Text(
+                    item.sub,
+                    style: const TextStyle(color: Colors.white54, fontSize: 11),
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  /// 🔥 ACTION BUTTONS WITH ICONS FIXED
+                  if (!isTaken && isCurrent) ...[
+                    SizedBox(
+                      width: double.infinity,
+                      height: 42,
+                      child: ElevatedButton.icon(
+                        // ✅ Changed to .icon
+                        onPressed: onMarkTaken,
+                        icon: const Icon(
+                          Icons.check_circle_outline,
+                          size: 18,
+                        ), // ✅ Added Icon
+                        label: const Text("Mark as Taken"),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: accentCyan,
+                          foregroundColor: Colors.black,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+
+                    SizedBox(
+                      width: double.infinity,
+                      height: 42,
+                      child: OutlinedButton.icon(
+                        // ✅ Changed to .icon
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => MedicationVerificationScreen(
+                                medicineName: item.title,
+                              ),
+                            ),
+                          );
+                        },
+                        icon: const Icon(
+                          Icons.camera_alt_outlined,
+                          size: 18,
+                          color: accentCyan,
+                        ), // ✅ Added Icon
+                        label: const Text("Verify with Selfie"),
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: Colors.white24),
+                          foregroundColor: Colors.white70,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+
+                  /// ✅ TAKEN STATUS (Verification Badge)
+                  if (isTaken)
+                    Container(
+                      margin: const EdgeInsets.only(top: 8),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: accentCyan.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Row(
+                        // Added row for internal consistency
+                        mainAxisSize: MainAxisSize.min,
+                        children: const [
+                          Icon(
+                            Icons.verified_user,
+                            color: accentCyan,
+                            size: 12,
+                          ),
+                          SizedBox(width: 6),
+                          Text(
+                            "VERIFIED • LOGGED",
+                            style: TextStyle(
+                              color: accentCyan,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                ],
+              ),
             ),
           ),
         ],
       ),
     );
   }
+  /// 🔹 REFILL CARD
+  // Widget _buildRefillCard() {
+  //   return Container(
+  //     padding: const EdgeInsets.all(16),
+  //     decoration: BoxDecoration(
+  //       color: surfaceColor,
+  //       borderRadius: BorderRadius.circular(16),
+  //     ),
+  //     child: Column(
+  //       crossAxisAlignment: CrossAxisAlignment.start,
+  //       children: [
+  //         const Text(
+  //           "REFILL STATUS",
+  //           style: TextStyle(
+  //             color: Colors.white38,
+  //             fontSize: 10,
+  //             fontWeight: FontWeight.bold,
+  //           ),
+  //         ),
+  //         // const Spacer(),
+  //         SizedBox(height: 16),
+  //         const Text(
+  //           "12 days left",
+  //           style: TextStyle(
+  //             color: Colors.white,
+  //             fontSize: 22,
+  //             fontWeight: FontWeight.bold,
+  //           ),
+  //         ),
+  //         const SizedBox(height: 10),
+  //         ClipRRect(
+  //           borderRadius: BorderRadius.circular(10),
+  //           child: const LinearProgressIndicator(
+  //             value: 0.7,
+  //             minHeight: 8,
+  //             backgroundColor: Colors.white10,
+  //             valueColor: AlwaysStoppedAnimation<Color>(Colors.redAccent),
+  //           ),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
 
-  /// 🔹 DOCTOR NOTE CARD
-  Widget _buildDoctorNoteCard() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: surfaceColor,
+  // /// 🔹 DOCTOR NOTE CARD
+  // Widget _buildDoctorNoteCard() {
+  //   return Container(
+  //     padding: const EdgeInsets.all(16),
+  //     decoration: BoxDecoration(
+  //       color: surfaceColor,
+  //       borderRadius: BorderRadius.circular(16),
+  //     ),
+  //     child: Column(
+  //       crossAxisAlignment: CrossAxisAlignment.start,
+  //       children: [
+  //         const Text(
+  //           "DOCTOR NOTE",
+  //           style: TextStyle(
+  //             color: Colors.white38,
+  //             fontSize: 10,
+  //             fontWeight: FontWeight.bold,
+  //           ),
+  //         ),
+  //         // const Spacer(),
+  //         SizedBox(height: 16),
+  //         Text(
+  //           "“Monitor blood pressure levels after morning...",
+  //           overflow: TextOverflow.ellipsis,
+  //           maxLines: 2,
+  //           style: TextStyle(color: Colors.white70, fontSize: 12),
+  //         ),
+  //         // const Spacer(),
+  //         SizedBox(height: 16),
+  //         InkWell(
+  //           onTap: () {},
+  //           child: Row(
+  //             children: const [
+  //               Icon(Icons.open_in_new, color: accentCyan, size: 14),
+  //               SizedBox(width: 5),
+  //               Text(
+  //                 "View Dr. Aris",
+  //                 style: TextStyle(
+  //                   color: accentCyan,
+  //                   fontSize: 12,
+  //                   fontWeight: FontWeight.w600,
+  //                 ),
+  //               ),
+  //             ],
+  //           ),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
+
+  Widget _buildAddMedicationCard() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+      child: InkWell(
+        onTap: () {
+          // Handle Add Medication Logic
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) =>
+                  const MedicationVerificationScreen(medicineName: ""),
+            ),
+          );
+        },
         borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            "DOCTOR NOTE",
-            style: TextStyle(
-              color: Colors.white38,
-              fontSize: 10,
-              fontWeight: FontWeight.bold,
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 24),
+          decoration: BoxDecoration(
+            color: const Color(0xFF1E1E1E), // surfaceColor
+            borderRadius: BorderRadius.circular(16),
+            // 🔹 Creating the dashed/dotted effect from your image
+            border: Border.all(
+              color: Colors.white.withOpacity(0.1),
+              style: BorderStyle
+                  .solid, // Use a custom painter for true dots, but a thin solid border works well for UI
             ),
           ),
-          // const Spacer(),
-          SizedBox(height: 16),
-          Text(
-            "“Monitor blood pressure levels after morning...",
-            overflow: TextOverflow.ellipsis,
-            maxLines: 2,
-            style: TextStyle(color: Colors.white70, fontSize: 12),
-          ),
-          // const Spacer(),
-          SizedBox(height: 16),
-          InkWell(
-            onTap: () {},
-            child: Row(
-              children: const [
-                Icon(Icons.open_in_new, color: accentCyan, size: 14),
-                SizedBox(width: 5),
-                Text(
-                  "View Dr. Aris",
-                  style: TextStyle(
-                    color: accentCyan,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: const Color(0xFF81DEEA).withOpacity(0.4),
+                    width: 1.5,
                   ),
                 ),
-              ],
-            ),
+                child: const Icon(
+                  Icons.add,
+                  color: Color(0xFF81DEEA), // accentCyan
+                  size: 24,
+                ),
+              ),
+              const SizedBox(height: 12),
+              const Text(
+                "Add another prescription or supplement",
+                style: TextStyle(
+                  color: Colors.white70,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w400,
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
-
   /// 🔹 Helper: Weekly Compliance Card
   Widget _buildWeeklyComplianceCard() {
     return Container(

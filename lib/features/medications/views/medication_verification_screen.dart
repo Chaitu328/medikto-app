@@ -3,6 +3,8 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:medikto/core/utils/widgets/custom_textfields.dart';
+import 'package:medikto/features/medications/views/activity_history_screen.dart';
 
 class MedicationVerificationScreen extends StatefulWidget {
   final String medicineName;
@@ -21,6 +23,7 @@ class _MedicationVerificationScreenState
 
   File? capturedImage;
   final ImagePicker _picker = ImagePicker();
+  bool remindersEnabled = true;
 
   Future<void> _captureProofImage() async {
     final XFile? image = await _picker.pickImage(
@@ -128,8 +131,109 @@ class _MedicationVerificationScreenState
                   ),
                 ],
               ),
+              SizedBox(height: 30),
 
-              const SizedBox(height: 40),
+              /// 📝 2. MEDICATION FORM FIELDS
+              AppTextFormFieldTitled(
+                titleTextStyle: const TextStyle(
+                  color: Colors.white54,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
+                title: "MEDICATION NAME",
+                hintText: "e.g. Lisinopril",
+                fillColor: surfaceColor,
+                borderColor: Colors.white10,
+              ),
+              const SizedBox(height: 15),
+
+              Row(
+                children: [
+                  Expanded(
+                    child: AppTextFormFieldTitled(
+                      titleTextStyle: const TextStyle(
+                        color: Colors.white54,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      title: "DOSAGE",
+                      hintText: "50",
+                      fillColor: surfaceColor,
+                      borderColor: Colors.white10,
+                    ),
+                  ),
+                  const SizedBox(width: 15),
+                  Expanded(child: _buildDropdownField("UNIT", "mg")),
+                ],
+              ),
+              const SizedBox(height: 20),
+
+              /// 📅 3. FREQUENCY SELECTION
+              const Text(
+                "FREQUENCY",
+                style: TextStyle(
+                  color: Colors.white54,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 10),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    _buildFrequencyChip("Daily", false),
+                    _buildFrequencyChip("Every 12h", true), // Selected
+                    _buildFrequencyChip("Weekly", false),
+                    _buildFrequencyChip("As Needed", false),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 25),
+
+              /// ⏰ 4. SCHEDULED REMINDER CARD
+              _buildReminderCard(),
+              const SizedBox(height: 20),
+
+              /// 🗒️ 5. PATIENT INSTRUCTIONS
+              AppTextFormFieldTitled(
+                titleTextStyle: const TextStyle(
+                  color: Colors.white54,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
+                title: "PATIENT INSTRUCTIONS",
+                hintText: "Take with food, avoid alcohol...",
+                fillColor: surfaceColor,
+                maxLines: 3,
+                borderColor: Colors.white10,
+              ),
+
+              const SizedBox(height: 30),
+
+              /// 🔥 6. ADD MEDICATION BUTTON
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: accentCyan,
+                  foregroundColor: Colors.black,
+                  minimumSize: const Size(double.infinity, 56),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                ),
+                onPressed: () {
+                  // TODO: Perform Backend Save Logic Here
+                  Navigator.pop(
+                    context,
+                  ); // Redirects back to Medications Screen
+                },
+                child: const Text(
+                  "ADD MEDICATION",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+              ),
+              const SizedBox(height: 30),
+              
 
               /// 4. RECENT ACTIVITY LIST
               Row(
@@ -144,7 +248,14 @@ class _MedicationVerificationScreenState
                     ),
                   ),
                   TextButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const ActivityHistoryScreen(),
+                        ),
+                      );
+                    },
                     child: const Text(
                       "View History",
                       style: TextStyle(
@@ -176,6 +287,151 @@ class _MedicationVerificationScreenState
     );
   }
 
+
+/// 🔹 Helper for the Unit Dropdown
+  Widget _buildDropdownField(String title, String value) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: const TextStyle(
+            color: Colors.white54,
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          height: 54,
+          decoration: BoxDecoration(
+            color: surfaceColor,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                value,
+                style: const TextStyle(color: Colors.white, fontSize: 16),
+              ),
+              const Icon(Icons.keyboard_arrow_down, color: Colors.white54),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// 🔹 Helper for Frequency Chips
+  Widget _buildFrequencyChip(String label, bool isSelected) {
+    return Container(
+      margin: const EdgeInsets.only(right: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      decoration: BoxDecoration(
+        color: isSelected ? accentCyan : Colors.transparent,
+        borderRadius: BorderRadius.circular(25),
+        border: Border.all(color: isSelected ? accentCyan : Colors.white10),
+        boxShadow: isSelected
+            ? [BoxShadow(color: accentCyan.withOpacity(0.3), blurRadius: 10)]
+            : null,
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: isSelected ? Colors.black : Colors.white,
+          fontWeight: FontWeight.bold,
+          fontSize: 14,
+        ),
+      ),
+    );
+  }
+
+  /// 🔹 Helper for the Reminder Card
+  Widget _buildReminderCard() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: surfaceColor,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    "SCHEDULED REMINDER",
+                    style: TextStyle(
+                      color: Colors.white38,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      const Text(
+                        "08:00",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 42,
+                          fontWeight: FontWeight.w400,
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 8, left: 5),
+                        child: Text(
+                          "AM",
+                          style: TextStyle(
+                            color: accentCyan,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.05),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.calendar_today_outlined,
+                  color: Colors.white54,
+                  size: 24,
+                ),
+              ),
+            ],
+          ),
+          const Divider(color: Colors.white10, height: 30),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                "Reminders",
+                style: TextStyle(color: Colors.white70, fontSize: 16),
+              ),
+              Switch(
+                value: remindersEnabled,
+                activeColor: accentCyan,
+                onChanged: (val) => setState(() => remindersEnabled = val),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
   
   Widget _buildCorner({
     double? top,
@@ -313,7 +569,7 @@ class _MedicationVerificationScreenState
 
 Widget _buildCameraFrame() {
     return Container(
-      height: 350,
+      height: 280,
       width: double.infinity,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(24),
@@ -394,6 +650,4 @@ Widget _buildCameraFrame() {
       ),
     );
   }
-
-
 }
