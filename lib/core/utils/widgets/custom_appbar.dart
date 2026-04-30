@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:medikto/bottom_bar.dart';
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String? title;
@@ -30,7 +31,21 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       /// 🔙 Back Button
       leading: showBackButton == true
           ? InkWell(
-              onTap: onBack ?? () => Navigator.pop(context),
+              onTap:
+                  onBack ??
+                  () {
+                    if (Navigator.canPop(context)) {
+                      Navigator.pop(context);
+                    } else {
+                      // Optional: Redirect to Home if there's nowhere to go back to
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const BaseBottomNavigationPage(),
+                        ),
+                      );
+                    }
+                  },
               child: const Icon(
                 size: 20,
                 Icons.arrow_back_ios_new,
@@ -38,7 +53,6 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
               ),
             )
           : null,
-
       /// 📝 Title
       title: showBackButton == false
           ? Padding(

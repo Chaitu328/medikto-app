@@ -34,6 +34,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:medikto/bottom_bar.dart';
 import 'package:medikto/splash_screen.dart';
 
 void main() {
@@ -101,7 +102,7 @@ class MyApp extends StatelessWidget {
         ),
       ),
 
-      home: const SplashScreen(),
+      home: SplashScreen(),
     );
   }
 }

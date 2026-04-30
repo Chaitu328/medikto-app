@@ -53,13 +53,16 @@ class _AddBloodPressureScreenState extends State<AddBloodPressureScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: darkBg,
+      
       appBar: CustomAppBar(
         title: "Blood Pressure",
+        onBack: () => Navigator.pop(context),
         backgroundColor: darkBg,
         titleStyle: const TextStyle(
           color: Colors.white,
           fontWeight: FontWeight.bold,
         ),
+
       ),
       body: SafeArea(
         child: Column(

@@ -1,47 +1,90 @@
 import 'package:flutter/material.dart';
 import 'package:medikto/core/utils/widgets/custom_appbar.dart';
-import 'package:medikto/core/utils/widgets/custom_button.dart';
-import 'package:medikto/features/vitals/views/vitals_track_details.dart';
+import 'package:medikto/features/home/add_reports/health_data/add_blood_pressure.dart';
+import 'package:medikto/features/home/add_reports/health_data/add_body_temparature.dart';
+import 'package:medikto/features/home/add_reports/health_data/add_heart_rate.dart';
+import 'package:medikto/features/home/add_reports/health_data/add_sugar_levels.dart';
+import 'package:medikto/features/home/add_reports/health_records/add_medicine_reports.dart';
+import 'package:medikto/features/home/add_reports/health_records/add_prescription_file.dart';
+import 'package:medikto/features/home/widgets/health_data_card.dart';
 
-class VitalsScreen extends StatefulWidget {
-  const VitalsScreen({super.key});
+class AddReportsScreen extends StatefulWidget {
+  const AddReportsScreen({super.key});
 
   @override
-  State<VitalsScreen> createState() => _VitalsScreenState();
+  State<AddReportsScreen> createState() => _AddReportsScreenState();
 }
 
-class _VitalsScreenState extends State<VitalsScreen> {
+class _AddReportsScreenState extends State<AddReportsScreen> {
   static const Color darkBg = Color(0xFF121212);
-  static const Color surfaceColor = Color(0xFF1E1E1E);
-  static const Color accentCyan = Color(0xFF81DEEA);
 
-  final List<Map<String, dynamic>> vitalsList = const [
-    {"title": "Sugar Levels", "image": "assets/images/diabets-test.png"},
-    {"title": "Heart Rate", "image": "assets/images/blood-pressure.png"},
-    {"title": "Blood Sugar", "image": "assets/images/blood-drop.png"},
-    {"title": "Body Temperature", "image": "assets/images/thermometer.png"},
-  ];
+  // final List<Map<String, dynamic>> vitalsList = const [
+  //   {"title": "Sugar Levels", "image": "assets/images/diabets-test.png"},
+  //   {"title": "Heart Rate", "image": "assets/images/blood-pressure.png"},
+  //   {"title": "Blood Sugar", "image": "assets/images/blood-drop.png"},
+  //   {"title": "Body Temperature", "image": "assets/images/thermometer.png"},
+  // ];
 
-  final List<Map<String, dynamic>> reportsList = const [
-    {
-      "title": "Total Reports",
-      "image": "assets/images/profile.png",
-      "count": 22,
-    },
-    {"title": "Reminders", "image": "assets/images/bell.png", "count": 4},
-    {
-      "title": "All Medications",
-      "image": "assets/images/pills.png",
-      "count": 23,
-    },
-    {
-      "title": "All Lab Reports",
-      "image": "assets/images/dna-tests.png",
-      "count": 17,
-    },
-  ];
+  // final List<Map<String, dynamic>> reportsList = const [
+  //   {
+  //     "title": "Total Reports",
+  //     "image": "assets/images/profile.png",
+  //     "count": 22,
+  //   },
+  //   {"title": "Reminders", "image": "assets/images/bell.png", "count": 4},
+  //   {
+  //     "title": "All Medications",
+  //     "image": "assets/images/pills.png",
+  //     "count": 23,
+  //   },
+  //   {
+  //     "title": "All Lab Reports",
+  //     "image": "assets/images/dna-tests.png",
+  //     "count": 17,
+  //   },
+  // ];
 
   final ScrollController _controller = ScrollController();
+
+  /// 🔹 Static data (const → better performance)
+  final List<Map<String, String>> healthData = const [
+    {"name": "Blood Pressure", "image": "assets/images/blood-drop.png"},
+    {"name": "Heart Rate", "image": "assets/images/blood-pressure.png"},
+    {"name": "Body Temperature", "image": "assets/images/thermometer.png"},
+    {"name": "Sugar Levels", "image": "assets/images/diabets-test.png"},
+  ];
+
+  final List<Map<String, String>> healthRecords = const [
+    {"name": "Medical Reports", "image": "assets/images/profile.png"},
+    {"name": "Prescription", "image": "assets/images/diabets-test.png"},
+  ];
+
+  Widget _getHealthDataScreen(int index) {
+    switch (index) {
+      case 0:
+        return const AddBloodPressureScreen();
+      case 1:
+        return const AddHeartRateScreen();
+      case 2:
+        return const AddBodyTemparatureScreen();
+      case 3:
+        return const AddSugarLevelsScreen();
+      default:
+        return const SizedBox();
+    }
+  }
+
+  Widget _getHealthRecordScreen(int index) {
+    switch (index) {
+      case 0:
+        return const AddMedicalMedicationsScreen();
+      case 1:
+        return const AddPrescriptionFileScreen();
+      default:
+        return const SizedBox();
+    }
+  }
+
 
   @override
   void dispose() {
@@ -56,7 +99,7 @@ class _VitalsScreenState extends State<VitalsScreen> {
     return Scaffold(
       backgroundColor: darkBg,
       appBar: CustomAppBar(
-        title: "Vitals",
+        title: "Add Reports",
         backgroundColor: darkBg,
         titleStyle: const TextStyle(
           color: Colors.white,
@@ -65,244 +108,84 @@ class _VitalsScreenState extends State<VitalsScreen> {
         onBack: () {},
         showBackButton: false,
       ),
-      body: CustomScrollView(
-        controller: _controller,
-        physics: const BouncingScrollPhysics(),
-        slivers: [
-          SliverToBoxAdapter(child: SizedBox(height: size.height * 0.02)),
-
-          /// 🔹 Vitals Grid
-          SliverPadding(
+      body: Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
+        child: SingleChildScrollView(
+          child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 20),
-            sliver: SliverGrid(
-              delegate: SliverChildBuilderDelegate((context, index) {
-                final item = vitalsList[index];
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 12),
 
-                return RepaintBoundary(
-                  child: GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const VitalsTrackDetailsScreen(),
-                        ),
-                      );
-                    },
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: surfaceColor,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: Colors.white.withOpacity(0.05),
-                        ),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.all(10),
-                            child: Row(
-                              children: [
-                                Container(
-                                  height: 32,
-                                  width: 32,
-                                  decoration: BoxDecoration(
-                                    color: accentCyan.withOpacity(0.1),
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: Center(
-                                    child: Image.asset(
-                                      item["image"],
-                                      height: 18,
-                                      width: 18,
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-
-                                /// ✅ Responsive Title with Clipping
-                                Expanded(
-                                  child: Text(
-                                    item["title"],
-                                    // maxLines: 1,
-                                    overflow: TextOverflow.clip,
-                                    style: const TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w600,
-                                      color: Colors.white70,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const Spacer(),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 10),
-                            child: Row(
-                              children: [
-                                /// ✅ Responsive Vital Value
-                                Expanded(
-                                  child: Text(
-                                    "120/80 mmHg",
-                                    maxLines: 1,
-                                    overflow: TextOverflow.clip,
-                                    style: const TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.bold,
-                                      color: accentCyan,
-                                    ),
-                                  ),
-                                ),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 6,
-                                    vertical: 3,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.greenAccent.withOpacity(0.1),
-                                    borderRadius: BorderRadius.circular(100),
-                                  ),
-                                  child: const Text(
-                                    "Normal",
-                                    style: TextStyle(
-                                      fontSize: 8,
-                                      color: Colors.greenAccent,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const Spacer(),
-                          Image.asset(
-                            "assets/images/vitals-graph.png",
-                            color: accentCyan.withOpacity(0.8),
-                            fit: BoxFit.fitWidth,
-                            width: double.infinity,
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.all(10),
-                            child: CustomButton(
-                              buttonColor: Colors.white.withOpacity(0.05),
-                              height: 28,
-                              radius: BorderRadius.circular(8),
-                              buttonText: "View",
-                              textStyle: const TextStyle(
-                                fontSize: 10,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                /// 🔹 Health Data Header
+                const Text(
+                  "Health Data",
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white, // White text for dark mode
                   ),
-                );
-              }, childCount: vitalsList.length),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                mainAxisSpacing: 12,
-                crossAxisSpacing: 12,
-                mainAxisExtent: 190, // Fixed height for vertical consistency
-              ),
-            ),
-          ),
-
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 24, 20, 12),
-              child: Text(
-                "Reports Data",
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white.withOpacity(0.9),
                 ),
-              ),
+                SizedBox(height: size.height * 0.02),
+
+                _buildGrid(healthData, true),
+
+                SizedBox(height: size.height * 0.03),
+        
+                /// 🔹 Health Records Header
+                const Text(
+                  "Health Records",
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white, // White text for dark mode
+                  ),
+                ),
+                SizedBox(height: size.height * 0.02),
+        
+                _buildGrid(healthRecords, false),
+        
+                SizedBox(height: size.height * 0.04),
+              ],
             ),
           ),
-
-          /// 🔹 Reports Grid
-          SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            sliver: SliverGrid(
-              delegate: SliverChildBuilderDelegate((context, index) {
-                final item = reportsList[index];
-
-                return Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: surfaceColor,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        height: 32,
-                        width: 32,
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.05),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Center(
-                          child: Image.asset(
-                            item["image"],
-                            height: 16,
-                            width: 16,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            /// ✅ Responsive Report Title
-                            Text(
-                              item["title"],
-                              // maxLines: 1,
-                              overflow: TextOverflow.clip,
-                              style: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.white54,
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            Align(
-                              alignment: Alignment.center,
-                              child: Text(
-                                item["count"].toString(),
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              }, childCount: reportsList.length),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                mainAxisSpacing: 12,
-                crossAxisSpacing: 12,
-                childAspectRatio: 1.8, // Responsive height based on width
-              ),
-            ),
-          ),
-
-          const SliverToBoxAdapter(child: SizedBox(height: 40)),
-        ],
-      ),
+        ),
+      )
+      
     );
   }
+
+  Widget _buildGrid(List<Map<String, String>> data, bool isHealthData) {
+    return GridView.builder(
+      itemCount: data.length,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        mainAxisSpacing: 10,
+        crossAxisSpacing: 10,
+        mainAxisExtent: 90,
+      ),
+      itemBuilder: (context, index) {
+        return HealthDataCard(
+          title: data[index]["name"]!,
+          image: data[index]["image"]!,
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => isHealthData
+                    ? _getHealthDataScreen(index)
+                    : _getHealthRecordScreen(index),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
 }

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:medikto/bottom_bar.dart';
 import 'package:medikto/core/utils/widgets/custom_button.dart';
 import 'package:medikto/core/utils/widgets/custom_textfields.dart';
 import 'package:medikto/features/home/add_reports/widgets/timings_widget.dart';
@@ -21,6 +22,8 @@ class _HomeScreenState extends State<HomeScreen> {
   static const Color primaryBlue = Color(0xFF4D6AFF); // Brightened for dark bg
   static const Color darkBg = Color(0xFF121212);
   static const Color surfaceColor = Color(0xFF1E1E1E);
+
+  String selectedPeriod = "Morning"; // Default selection
 
   @override
   Widget build(BuildContext context) {
@@ -73,9 +76,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 
                
                 /// 🔹 3. TODAY'S SCHEDULE HEADER
+/// 🔹 3. TODAY'S SCHEDULE HEADER
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -97,52 +100,71 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     TextButton(
                       onPressed: () {},
-                      style: TextButton.styleFrom(padding: EdgeInsets.zero),
                       child: const Text(
                         "VIEW ALL",
                         style: TextStyle(
-                          color: Color(0xFF81DEEA), // Cyan
+                          color: Color(0xFF81DEEA),
                           fontWeight: FontWeight.bold,
-                          letterSpacing: 1.1,
                           fontSize: 14,
                         ),
                       ),
                     ),
                   ],
                 ),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
 
-                /// 4. SCHEDULE LIST
-_buildScheduleItem(
-                  time: "7 AM",
-                  name: "Atorvastatin",
-                  desc: "20mg Tablet",
-                  status: "MISSED",
-                  // A slightly stronger tint for missed background
-                  color: Colors.redAccent,
+                /// 🔹 NEW: PERIOD TABS (Morning, Afternoon, Evening)
+                Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withAlpha(14),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    children: [
+                      _buildPeriodTab("Morning"),
+                      _buildPeriodTab("Afternoon"),
+                      _buildPeriodTab("Evening"),
+                    ],
+                  ),
                 ),
-                _buildScheduleItem(
-                  time: "8 AM",
-                  name: "Vitamin D3",
-                  desc: "1000 IU Capsule",
-                  status: "TAKEN",
-                  subStatus: "Logged at 8:04 AM",
-                  color: const Color(0xFF81DEEA), // Cyan
-                ),
-                _buildScheduleItem(
-                  time: "2 PM",
-                  name: "Metformin",
-                  desc: "500mg Oral",
-                  status: "UPCOMING",
-                  color: Colors.orangeAccent,
-                ),
-                _buildScheduleItem(
-                  time: "9 PM",
-                  name: "Lisinopril",
-                  desc: "10mg Tablet",
-                  status: "LATER",
-                  color: Colors.white24, // Muted grey for later
-                ),
+                const SizedBox(height: 24),
+
+                /// 🔹 4. FILTERED SCHEDULE LIST
+                if (selectedPeriod == "Morning") ...[
+                  _buildScheduleItem(
+                    time: "7 AM",
+                    name: "Atorvastatin",
+                    desc: "20mg Tablet",
+                    status: "MISSED",
+                    color: Colors.redAccent,
+                  ),
+                  _buildScheduleItem(
+                    time: "8 AM",
+                    name: "Vitamin D3",
+                    desc: "1000 IU Capsule",
+                    status: "TAKEN",
+                    subStatus: "Logged at 8:04 AM",
+                    color: const Color(0xFF81DEEA),
+                  ),
+                ] else if (selectedPeriod == "Afternoon") ...[
+                  _buildScheduleItem(
+                    time: "2 PM",
+                    name: "Metformin",
+                    desc: "500mg Oral",
+                    status: "UPCOMING",
+                    color: Colors.orangeAccent,
+                  ),
+                ] else ...[
+                  _buildScheduleItem(
+                    time: "9 PM",
+                    name: "Lisinopril",
+                    desc: "10mg Tablet",
+                    status: "LATER",
+                    color: Colors.white24,
+                  ),
+                ],
+                const SizedBox(height: 10),
                 const SizedBox(height: 10),
 
                 const Text(
@@ -202,6 +224,33 @@ _buildScheduleItem(
           ),
           const SliverToBoxAdapter(child: SizedBox(height: 120)),
         ],
+      ),
+    );
+  }
+
+  Widget _buildPeriodTab(String period) {
+    bool isSelected = selectedPeriod == period;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => setState(() => selectedPeriod = period),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          decoration: BoxDecoration(
+            color: isSelected ? const Color(0xFF81DEEA) : Colors.transparent,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Center(
+            child: Text(
+              period,
+              style: TextStyle(
+                color: isSelected ? Colors.black : Colors.white54,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                fontSize: 13,
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -312,96 +361,94 @@ _buildScheduleItem(
       ),
     );
   }
-  Widget _buildPremiumCard() {
-    return _AnimatedPremiumCard(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const PremiumPlansScreen()),
-        );
-      },
-    );
-  }
 
 
   Widget _buildNextDoseCard() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1b2028),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: Color(0xFF25353e),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(Icons.medication, color: Color(0xFF81DEEA)),
-              ),
-              const SizedBox(width: 15),
-              const Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "NEXT DOSE",
-                      style: TextStyle(
-                        color: Colors.white70,
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Text(
-                      "Metformin 500mg",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              minimumSize: const Size(double.infinity, 45),
-              backgroundColor: const Color(0xFF81DEEA),
-              foregroundColor: Colors.black,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => MedicationVerificationScreen(
-                    medicineName: "Metformin 500mg",
-                  ),
-                ),
-              );
-            },
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => BaseBottomNavigationPage(index: 1)),
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: const Color(0xFF1b2028),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          children: [
+            Row(
               children: [
-                const Icon(Icons.check_circle_outline, size: 20),
-                const SizedBox(width: 8),
-                const Text(
-                  "Mark as Taken",
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Color(0xFF25353e),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(Icons.medication, color: Color(0xFF81DEEA)),
+                ),
+                const SizedBox(width: 15),
+                const Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "NEXT DOSE",
+                        style: TextStyle(
+                          color: Colors.white70,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        "Metformin 500mg",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
-          ),
-        ],
+            // const SizedBox(height: 24),
+            // ElevatedButton(
+            //   style: ElevatedButton.styleFrom(
+            //     minimumSize: const Size(double.infinity, 45),
+            //     backgroundColor: const Color(0xFF81DEEA),
+            //     foregroundColor: Colors.black,
+            //     shape: RoundedRectangleBorder(
+            //       borderRadius: BorderRadius.circular(12),
+            //     ),
+            //   ),
+            //   onPressed: () {
+            //     Navigator.push(
+            //       context,
+            //       MaterialPageRoute(
+            //         builder: (_) => MedicationVerificationScreen(
+            //           medicineName: "Metformin 500mg",
+            //         ),
+            //       ),
+            //     );
+            //   },
+            //   child: Row(
+            //     mainAxisAlignment: MainAxisAlignment.center,
+            //     children: [
+            //       const Icon(Icons.check_circle_outline, size: 20),
+            //       const SizedBox(width: 8),
+            //       const Text(
+            //         "Mark as Taken",
+            //         style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+            //       ),
+            //     ],
+            //   ),
+            // ),
+          ],
+        ),
       ),
     );
   }

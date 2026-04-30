@@ -24,6 +24,11 @@ class _MedicationVerificationScreenState
   File? capturedImage;
   final ImagePicker _picker = ImagePicker();
   bool remindersEnabled = true;
+  String selectedDosageAmount = "Morning"; // Default radio value
+  String selectedUnit = "mg";
+
+  final List<String> units = ["mg", "ml", "tablet", "capsule"];
+  List<String> selectedDosageTimings = [];
 
   Future<void> _captureProofImage() async {
     final XFile? image = await _picker.pickImage(
@@ -38,20 +43,79 @@ class _MedicationVerificationScreenState
     }
   }
 
-  Future<void> _captureSelfie() async {
-    final image = await _picker.pickImage(
-      source: ImageSource.camera,
-      preferredCameraDevice: CameraDevice.front,
-      imageQuality: 80,
+
+  List<String> selectedTimings = [];
+
+  // Add this helper method to your State class
+  void _showDosageAndFrequencyPopup() {
+    final options = ["Morning", "Afternoon", "Evening", "Night"];
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              backgroundColor: surfaceColor,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              title: const Text(
+                "SELECT DOSAGE TIMINGS",
+                style: TextStyle(
+                  color: accentCyan,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: options.map((dose) {
+                  final isSelected = selectedDosageTimings.contains(dose);
+
+                  return CheckboxListTile(
+                    contentPadding: EdgeInsets.zero,
+                    dense: true,
+                    activeColor: accentCyan,
+                    title: Text(
+                      dose,
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                    value: isSelected,
+                    onChanged: (value) {
+                      setDialogState(() {
+                        if (value == true) {
+                          selectedDosageTimings.add(dose);
+                        } else {
+                          selectedDosageTimings.remove(dose);
+                        }
+                      });
+                    },
+                  );
+                }).toList(),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    setState(() {}); // 🔥 update main UI
+                    Navigator.pop(context);
+                  },
+                  child: const Text(
+                    "SAVE",
+                    style: TextStyle(
+                      color: accentCyan,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
-
-    if (image != null) {
-      setState(() {
-        capturedImage = File(image.path);
-      });
-    }
   }
-
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -82,56 +146,56 @@ class _MedicationVerificationScreenState
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              const SizedBox(height: 25),
-
-              /// 1. CAMERA SCANNER FRAME
-              _buildCameraFrame(),
-
-              const SizedBox(height: 30),
-
-              /// 2. VERIFY BUTTON
-              ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: accentCyan,
-                  foregroundColor: Colors.black,
-                  minimumSize: const Size(double.infinity, 56),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                ),
-                onPressed: () => _captureProofImage(),
-                icon: const Icon(Icons.camera_alt),
-                label: const Text(
-                  "Verify with Selfie",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-              ),
-
               const SizedBox(height: 20),
 
+              /// 1. CAMERA SCANNER FRAME
+              // _buildCameraFrame(),
+
+              // const SizedBox(height: 30),
+
+              /// 2. VERIFY BUTTON
+              // ElevatedButton.icon(
+              //   style: ElevatedButton.styleFrom(
+              //     backgroundColor: accentCyan,
+              //     foregroundColor: Colors.black,
+              //     minimumSize: const Size(double.infinity, 56),
+              //     shape: RoundedRectangleBorder(
+              //       borderRadius: BorderRadius.circular(30),
+              //     ),
+              //   ),
+              //   onPressed: () => _captureProofImage(),
+              //   icon: const Icon(Icons.camera_alt),
+              //   label: const Text(
+              //     "Verify with Selfie",
+              //     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              //   ),
+              // ),
+
+              // const SizedBox(height: 20),
+
               /// 3. LOGGING INFO
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(
-                    Icons.info_outline,
-                    color: Colors.white38,
-                    size: 14,
-                  ),
-                  const SizedBox(width: 8),
-                  const Expanded(
-                    child: Text(
-                      "AUTOMATIC DATE, TIME, AND LOCATION LOGGING ENABLED",
-                      style: TextStyle(
-                        color: Colors.white38,
-                        fontSize: 9,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 30),
+              // Row(
+              //   mainAxisAlignment: MainAxisAlignment.center,
+              //   children: [
+              //     const Icon(
+              //       Icons.info_outline,
+              //       color: Colors.white38,
+              //       size: 14,
+              //     ),
+              //     const SizedBox(width: 8),
+              //     const Expanded(
+              //       child: Text(
+              //         "AUTOMATIC DATE, TIME, AND LOCATION LOGGING ENABLED",
+              //         style: TextStyle(
+              //           color: Colors.white38,
+              //           fontSize: 9,
+              //           fontWeight: FontWeight.bold,
+              //         ),
+              //       ),
+              //     ),
+              //   ],
+              // ),
+              // SizedBox(height: 30),
 
               /// 📝 2. MEDICATION FORM FIELDS
               AppTextFormFieldTitled(
@@ -163,36 +227,73 @@ class _MedicationVerificationScreenState
                     ),
                   ),
                   const SizedBox(width: 15),
-                  Expanded(child: _buildDropdownField("UNIT", "mg")),
+                  Expanded(child: _buildDropdownField("UNIT")),
                 ],
               ),
+              // const SizedBox(height: 20),
+              /// /// 📅 3. FREQUENCY & DOSAGE ROW
               const SizedBox(height: 20),
-
-              /// 📅 3. FREQUENCY SELECTION
-              const Text(
-                "FREQUENCY",
-                style: TextStyle(
-                  color: Colors.white54,
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 10),
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: [
-                    _buildFrequencyChip("Daily", false),
-                    _buildFrequencyChip("Every 12h", true), // Selected
-                    _buildFrequencyChip("Weekly", false),
-                    _buildFrequencyChip("As Needed", false),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 25),
+              _buildDosageRow(),
+              // Row(
+              //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              //   children: [
+              //     const SizedBox(height: 8),
+              //     Text(
+              //       selectedDosageAmount,
+              //       style: const TextStyle(
+              //         color: Colors.white,
+              //         fontSize: 16,
+              //       ),
+              //     ),
+              //     Column(
+              //       crossAxisAlignment: CrossAxisAlignment.end,
+              //       children: [
+              //         const Text(
+              //           "DOSAGE",
+              //           style: TextStyle(
+              //             color: Colors.white54,
+              //             fontSize: 12,
+              //             fontWeight: FontWeight.bold,
+              //           ),
+              //         ),
+              //         const SizedBox(height: 4),
+              //         IconButton(
+              //           onPressed: _showDosageAndFrequencyPopup,
+              //           icon: const Icon(
+              //             Icons.add_circle,
+              //             color: accentCyan,
+              //             size: 32,
+              //           ),
+              //         ),
+              //       ],
+              //     ),
+              //   ],
+              // ),
+              const SizedBox(height: 24),
+              // const Text(
+              //   "FREQUENCY",
+              //   style: TextStyle(
+              //     color: Colors.white54,
+              //     fontSize: 12,
+              //     fontWeight: FontWeight.bold,
+              //   ),
+              // ),
+              // const SizedBox(height: 10),
+              // SingleChildScrollView(
+              //   scrollDirection: Axis.horizontal,
+              //   child: Row(
+              //     children: [
+              //       _buildFrequencyChip("Daily", false),
+              //       _buildFrequencyChip("Every 12h", true), // Selected
+              //       _buildFrequencyChip("Weekly", false),
+              //       _buildFrequencyChip("As Needed", false),
+              //     ],
+              //   ),
+              // ),
+              // const SizedBox(height: 24),
 
               /// ⏰ 4. SCHEDULED REMINDER CARD
-              _buildReminderCard(),
+              _buildNotificationToggleCard(),
               const SizedBox(height: 20),
 
               /// 🗒️ 5. PATIENT INSTRUCTIONS
@@ -287,9 +388,63 @@ class _MedicationVerificationScreenState
     );
   }
 
+Widget _buildDosageRow() {
+    return GestureDetector(
+      onTap: _showDosageAndFrequencyPopup,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: surfaceColor,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: Colors.white10),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            /// 🔹 LEFT → SELECTED VALUES
+            Expanded(
+              child: Text(
+                selectedDosageTimings.isEmpty
+                    ? "Select timings"
+                    : selectedDosageTimings.join(", "),
+                maxLines: 2,
+                overflow: TextOverflow.clip,
+                style: TextStyle(
+                  color: selectedDosageTimings.isEmpty
+                      ? Colors.white38
+                      : Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+
+            /// 🔹 RIGHT → LABEL
+            const Row(
+              children: [
+                Text(
+                  "DOSAGE",
+                  style: TextStyle(
+                    color: Colors.white54,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1,
+                  ),
+                ),
+                SizedBox(width: 6),
+                Icon(Icons.add, color: accentCyan, size: 18),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
 
 /// 🔹 Helper for the Unit Dropdown
-  Widget _buildDropdownField(String title, String value) {
+Widget _buildDropdownField(String title) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -303,128 +458,99 @@ class _MedicationVerificationScreenState
         ),
         const SizedBox(height: 8),
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          height: 54,
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          // height: 54,
           decoration: BoxDecoration(
             color: surfaceColor,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(6),
+            border: Border.all(color: Colors.white10),
           ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                value,
-                style: const TextStyle(color: Colors.white, fontSize: 16),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              padding: EdgeInsets.zero,
+              value: selectedUnit,
+              dropdownColor: surfaceColor,
+              icon: const Icon(
+                Icons.keyboard_arrow_down,
+                color: Colors.white54,
               ),
-              const Icon(Icons.keyboard_arrow_down, color: Colors.white54),
-            ],
+              style: const TextStyle(color: Colors.white, fontSize: 16),
+
+              items: units.map((unit) {
+                return DropdownMenuItem(value: unit, child: Text(unit));
+              }).toList(),
+
+              onChanged: (value) {
+                setState(() {
+                  selectedUnit = value!;
+                });
+              },
+            ),
           ),
         ),
       ],
     );
   }
-
   /// 🔹 Helper for Frequency Chips
-  Widget _buildFrequencyChip(String label, bool isSelected) {
-    return Container(
-      margin: const EdgeInsets.only(right: 10),
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-      decoration: BoxDecoration(
-        color: isSelected ? accentCyan : Colors.transparent,
-        borderRadius: BorderRadius.circular(25),
-        border: Border.all(color: isSelected ? accentCyan : Colors.white10),
-        boxShadow: isSelected
-            ? [BoxShadow(color: accentCyan.withOpacity(0.3), blurRadius: 10)]
-            : null,
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          color: isSelected ? Colors.black : Colors.white,
-          fontWeight: FontWeight.bold,
-          fontSize: 14,
-        ),
-      ),
-    );
-  }
+  // Widget _buildFrequencyChip(String label, bool isSelected) {
+  //   return Container(
+  //     margin: const EdgeInsets.only(right: 10),
+  //     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+  //     decoration: BoxDecoration(
+  //       color: isSelected ? accentCyan : Colors.transparent,
+  //       borderRadius: BorderRadius.circular(25),
+  //       border: Border.all(color: isSelected ? accentCyan : Colors.white10),
+  //       boxShadow: isSelected
+  //           ? [BoxShadow(color: accentCyan.withOpacity(0.3), blurRadius: 10)]
+  //           : null,
+  //     ),
+  //     child: Text(
+  //       label,
+  //       style: TextStyle(
+  //         color: isSelected ? Colors.black : Colors.white,
+  //         fontWeight: FontWeight.bold,
+  //         fontSize: 14,
+  //       ),
+  //     ),
+  //   );
+  // }
 
   /// 🔹 Helper for the Reminder Card
-  Widget _buildReminderCard() {
+Widget _buildNotificationToggleCard() {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.only(left: 20, right: 20, top: 10, bottom: 10),
       decoration: BoxDecoration(
         color: surfaceColor,
         borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.white.withAlpha(14)),
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    "SCHEDULED REMINDER",
-                    style: TextStyle(
-                      color: Colors.white38,
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      const Text(
-                        "08:00",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 42,
-                          fontWeight: FontWeight.w400,
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 8, left: 5),
-                        child: Text(
-                          "AM",
-                          style: TextStyle(
-                            color: accentCyan,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.05),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(
-                  Icons.calendar_today_outlined,
-                  color: Colors.white54,
-                  size: 24,
-                ),
-              ),
-            ],
-          ),
-          const Divider(color: Colors.white10, height: 30),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
               const Text(
-                "Reminders",
-                style: TextStyle(color: Colors.white70, fontSize: 16),
+                "Notifications",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 18, // Slightly larger for better readability
+                  fontWeight: FontWeight.w500,
+                ),
               ),
-              Switch(
-                value: remindersEnabled,
-                activeColor: accentCyan,
-                onChanged: (val) => setState(() => remindersEnabled = val),
+              Transform.scale(
+                scale: 0.8, // Slightly smaller switch to look more modern
+                child: Switch(
+                  materialTapTargetSize: MaterialTapTargetSize.padded,
+                  padding: EdgeInsets.zero,
+                  value: remindersEnabled,
+                  activeThumbColor: accentCyan,
+                  activeTrackColor: accentCyan.withAlpha(30),
+                  inactiveThumbColor: Colors.white24,
+                  inactiveTrackColor: Colors.white10,
+                  onChanged: (val) => setState(() => remindersEnabled = val),
+                ),
               ),
             ],
           ),
@@ -432,7 +558,6 @@ class _MedicationVerificationScreenState
       ),
     );
   }
-  
   Widget _buildCorner({
     double? top,
     double? bottom,
@@ -650,4 +775,6 @@ Widget _buildCameraFrame() {
       ),
     );
   }
+
+
 }

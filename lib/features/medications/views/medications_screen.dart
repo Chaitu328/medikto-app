@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:medikto/features/home/notifications/notification_screen.dart';
+import 'package:medikto/features/medications/views/medical_records_screen.dart';
 import 'package:medikto/features/medications/views/medication_verification_screen.dart';
+import 'package:medikto/features/medications/views/selfie_verfication_medicine.dart';
 
 class TimelineMedicine {
   String time;
@@ -31,6 +33,7 @@ class _MedicationsScreenState extends State<MedicationsScreen> {
   static const Color surfaceColor = Color(0xFF1E1E1E); // Elevated Grey
   static const Color accentCyan = Color(0xFF81DEEA); // Branding Cyan
   static const Color dangerRed = Color(0xFFE57373); // Critical Alerts
+  DateTime selectedDate = DateTime.now();
 
   List<TimelineMedicine> medicines = [
     TimelineMedicine(
@@ -54,8 +57,6 @@ class _MedicationsScreenState extends State<MedicationsScreen> {
     ),
   ];
 
-  
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -71,12 +72,12 @@ class _MedicationsScreenState extends State<MedicationsScreen> {
               sliver: SliverList(
                 delegate: SliverChildListDelegate([
                   /// 🟢 Weekly Compliance Card
-                  _buildWeeklyComplianceCard(),
+                  // _buildWeeklyComplianceCard(),
 
-                  const SizedBox(height: 15),
+                  // const SizedBox(height: 15),
 
                   /// 🔴 Critical Pulse / Next Dose Card
-                  _buildNextDoseCard(),
+                  _buildAddMedicationCard(),
                 ]),
               ),
             ),
@@ -145,8 +146,8 @@ class _MedicationsScreenState extends State<MedicationsScreen> {
             const SliverToBoxAdapter(child: SizedBox(height: 15)),
 
             /// ✅ PLACE IT HERE
-            SliverToBoxAdapter(child: _buildAddMedicationCard()),
-            
+            // SliverToBoxAdapter(child: _buildAddMedicationCard()),
+
             /// 🔹 5. REFILL & NOTES (Responsive Grid)
             // SliverPadding(
             //   padding: const EdgeInsets.all(20),
@@ -163,6 +164,10 @@ class _MedicationsScreenState extends State<MedicationsScreen> {
             //     ]),
             //   ),
             // ),
+            const SliverToBoxAdapter(child: SizedBox(height: 10)),
+
+            /// ✅ ADD THIS HERE
+            SliverToBoxAdapter(child: _buildMedicalComplianceButton()),
 
             const SliverToBoxAdapter(
               child: SizedBox(height: 100),
@@ -178,170 +183,128 @@ class _MedicationsScreenState extends State<MedicationsScreen> {
     );
   }
 
-  /// 🔹 STATS CARD HELPER (Responsive fixes applied)
-  Widget _buildStatCard(String title, String count, IconData icon) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: surfaceColor,
-        borderRadius: BorderRadius.circular(16),
-      ),
+  /// 🔹 CALENDAR SECTION
+  Widget _buildCalendarSection(BuildContext context) {
+    final screenWidth = MediaQuery.sizeOf(context).width;
+
+    // Logic: Calculate item width based on screen size so 5.5 items are visible
+    // This gives a visual hint that the list is scrollable
+    final itemWidth = screenWidth / 5.5;
+
+    final List<DateTime> dates = List.generate(15, (index) {
+      return DateTime.now().add(Duration(days: index - 2));
+    });
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Icon(icon, color: accentCyan, size: 20),
-              Flexible(
-                // ✅ Fixes potential overflow if title is long
-                child: Text(
-                  title,
-                  textAlign: TextAlign.right,
-                  overflow: TextOverflow.ellipsis,
+          // Header remains padded
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  "${_getMonthName(selectedDate.month)} ${selectedDate.year}",
                   style: const TextStyle(
-                    color: Colors.white54,
-                    fontSize: 10,
+                    color: Colors.white,
+                    fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-              ),
-            ],
-          ),
-          const Spacer(),
-          Align(
-            alignment: Alignment.bottomRight,
-            child: Text(
-              count,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 32,
-                fontWeight: FontWeight.bold,
-              ),
+                // const Icon(
+                //   Icons.calendar_month_outlined,
+                //   color: Color(0xFF81DEEA),
+                //   size: 20,
+                // ),
+              ],
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// 🔹 COMPLIANCE RING CARD
-  Widget _buildComplianceCard() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: surfaceColor,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          const SizedBox(
-            height: 80,
-            width: 80,
-            child: CircularProgressIndicator(
-              value: 0.85,
-              strokeWidth: 8,
-              color: accentCyan,
-              backgroundColor: Colors.white12,
-            ),
-          ),
-          Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: const [
-              Text(
-                "85%",
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              Text(
-                "COMPLIANCE",
-                style: TextStyle(
-                  color: accentCyan,
-                  fontSize: 8,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// 🔹 CALENDAR SECTION
-  Widget _buildCalendarSection(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                "September 2024",
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              Row(
-                children: const [
-                  Icon(Icons.chevron_left, color: Colors.white38),
-                  SizedBox(width: 15),
-                  Icon(Icons.chevron_right, color: Colors.white),
-                ],
-              ),
-            ],
           ),
           const SizedBox(height: 15),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: List.generate(5, (index) {
-                bool isSelected = index == 2;
-                return Container(
-                  margin: const EdgeInsets.only(right: 12),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
-                  decoration: BoxDecoration(
-                    color: isSelected ? accentCyan : surfaceColor,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Column(
-                    children: [
-                      Text(
-                        ["MON", "TUE", "WED", "THU", "FRI"][index],
-                        style: TextStyle(
-                          color: isSelected ? Colors.black : Colors.white38,
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
+
+          // Scrollable area
+          SizedBox(
+            height: 90, // Fixed height for the horizontal bar
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: dates.length,
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.only(left: 20), // Start padding
+              itemBuilder: (context, index) {
+                final date = dates[index];
+                bool isSelected = DateUtils.isSameDay(date, selectedDate);
+                bool isToday = DateUtils.isSameDay(date, DateTime.now());
+
+                return GestureDetector(
+                  onTap: () => setState(() => selectedDate = date),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 250),
+                    width: itemWidth,
+                    margin: const EdgeInsets.only(right: 12),
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? const Color(0xFF81DEEA)
+                          : const Color(0xFF1E1E1E),
+                      borderRadius: BorderRadius.circular(16),
+                      border: isToday && !isSelected
+                          ? Border.all(
+                              color: const Color(0xFF81DEEA).withOpacity(0.5),
+                            )
+                          : Border.all(color: Colors.transparent),
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          _getWeekdayName(date.weekday),
+                          style: TextStyle(
+                            color: isSelected ? Colors.black : Colors.white38,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        "${16 + index}",
-                        style: TextStyle(
-                          color: isSelected ? Colors.black : Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
+                        const SizedBox(height: 6),
+                        Text(
+                          date.day.toString(),
+                          style: TextStyle(
+                            color: isSelected ? Colors.black : Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 );
-              }),
+              },
             ),
           ),
         ],
       ),
     );
+  }
+
+  // Helper helpers for dynamic names without needing external packages
+  String _getWeekdayName(int weekday) {
+    return ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"][weekday - 1];
+  }
+
+  String _getMonthName(int month) {
+    return [
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December",
+    ][month - 1];
   }
 
   /// 🔹 TIMELINE ITEM (Vertical list items)
@@ -465,8 +428,7 @@ class _MedicationsScreenState extends State<MedicationsScreen> {
     );
   }
 
-
-Widget _buildAdvancedTimelineItem({
+  Widget _buildAdvancedTimelineItem({
     required TimelineMedicine item,
     required bool isLast,
     required bool isCurrent,
@@ -588,9 +550,7 @@ Widget _buildAdvancedTimelineItem({
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (_) => MedicationVerificationScreen(
-                                medicineName: item.title,
-                              ),
+                              builder: (_) => SelfieVerficationMedicineScreen(),
                             ),
                           );
                         },
@@ -652,6 +612,7 @@ Widget _buildAdvancedTimelineItem({
       ),
     );
   }
+
   /// 🔹 REFILL CARD
   // Widget _buildRefillCard() {
   //   return Container(
@@ -747,138 +708,46 @@ Widget _buildAdvancedTimelineItem({
   //   );
   // }
 
-  Widget _buildAddMedicationCard() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-      child: InkWell(
-        onTap: () {
-          // Handle Add Medication Logic
+  /// 🔹 Helper: Weekly Compliance Card
+
+Widget _buildMedicalComplianceButton() {
+  return Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+    child: SizedBox(
+      width: double.infinity,
+      height: 55,
+      child: ElevatedButton.icon(
+        onPressed: () {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) =>
-                  const MedicationVerificationScreen(medicineName: ""),
+              builder: (_) => const MedicalRecordsScreen(),
             ),
           );
         },
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 24),
-          decoration: BoxDecoration(
-            color: const Color(0xFF1E1E1E), // surfaceColor
+        style: ElevatedButton.styleFrom(
+          backgroundColor: accentCyan,
+          foregroundColor: Colors.black,
+          shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
-            // 🔹 Creating the dashed/dotted effect from your image
-            border: Border.all(
-              color: Colors.white.withOpacity(0.1),
-              style: BorderStyle
-                  .solid, // Use a custom painter for true dots, but a thin solid border works well for UI
-            ),
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: const Color(0xFF81DEEA).withOpacity(0.4),
-                    width: 1.5,
-                  ),
-                ),
-                child: const Icon(
-                  Icons.add,
-                  color: Color(0xFF81DEEA), // accentCyan
-                  size: 24,
-                ),
-              ),
-              const SizedBox(height: 12),
-              const Text(
-                "Add another prescription or supplement",
-                style: TextStyle(
-                  color: Colors.white70,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w400,
-                ),
-              ),
-            ],
           ),
         ),
+        icon: const Icon(Icons.verified_user),
+        label: const Text(
+          "Medical Record Compliance",
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+        ),
       ),
-    );
-  }
-  /// 🔹 Helper: Weekly Compliance Card
-  Widget _buildWeeklyComplianceCard() {
+    ),
+  );
+}
+  Widget _buildAddMedicationCard() {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: const Color(0xFF1E1E1E), // surfaceColor
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                "WEEKLY COMPLIANCE",
-                style: TextStyle(
-                  color: Colors.white54,
-                  fontSize: 10,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 0.5,
-                ),
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                "85%",
-                style: TextStyle(
-                  color: Color(0xFF81DEEA), // accentCyan
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 4),
-              const Text(
-                "5% improvement from last week",
-                style: TextStyle(color: Colors.white38, fontSize: 11),
-              ),
-            ],
-          ),
-          // Progress Ring
-          Stack(
-            alignment: Alignment.center,
-            children: [
-              SizedBox(
-                height: 60,
-                width: 60,
-                child: CircularProgressIndicator(
-                  value: 0.85,
-                  strokeWidth: 6,
-                  color: const Color(0xFF81DEEA),
-                  backgroundColor: Colors.white.withOpacity(0.05),
-                ),
-              ),
-              const Icon(
-                Icons.auto_graph_rounded,
-                color: Color(0xFF81DEEA),
-                size: 20,
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// 🔹 Helper: Next Dose Card
-  Widget _buildNextDoseCard() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1E1E1E), // surfaceColor
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.white.withOpacity(0.05)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -886,64 +755,78 @@ Widget _buildAdvancedTimelineItem({
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                "CRITICAL PULSE",
-                style: TextStyle(
-                  color: Color(0xFFFF8A65), // Muted Orange/Red
-                  fontSize: 10,
-                  fontWeight: FontWeight.bold,
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 5,
+                ),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF81DEEA).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Text(
+                  "QUICK ACTION",
+                  style: TextStyle(
+                    color: Color(0xFF81DEEA),
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1.1,
+                  ),
                 ),
               ),
               Icon(
-                Icons.wb_sunny_outlined,
+                Icons.add_moderator_outlined,
                 color: Colors.white.withOpacity(0.2),
-                size: 16,
+                size: 20,
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
           const Text(
-            "Next Dose Window",
+            "Add Medication",
             style: TextStyle(
               color: Colors.white,
-              fontSize: 20,
+              fontSize: 22,
               fontWeight: FontWeight.bold,
             ),
           ),
+          const SizedBox(height: 4),
           const Text(
-            "Vitamin C 500mg in 42 minutes",
-            style: TextStyle(color: Colors.white54, fontSize: 14),
+            "Keep track of your health by adding your daily prescriptions.",
+            style: TextStyle(color: Colors.white54, fontSize: 14, height: 1.4),
           ),
           const SizedBox(height: 20),
-          // The Large Log Dose Button
           SizedBox(
             width: double.infinity,
-            height: 50,
+            height: 52,
             child: ElevatedButton(
               onPressed: () {
+                // Navigate to your medication adding logic
+
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) =>
-                        MedicationVerificationScreen(medicineName: "Vitamin C"),
+                    builder: (_) => const MedicationVerificationScreen(
+                      medicineName: "Add Medication",
+                    ),
                   ),
                 );
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF00E5FF), // Bright Cyan
+                backgroundColor: const Color(0xFF81DEEA),
                 foregroundColor: Colors.black,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(14),
                 ),
                 elevation: 0,
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: const [
-                  Icon(Icons.add_circle_outline, size: 18),
+                  Icon(Icons.add_circle_outline, size: 20),
                   SizedBox(width: 8),
                   Text(
-                    "Log Dose",
+                    "Add New Medicine",
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                   ),
                 ],
