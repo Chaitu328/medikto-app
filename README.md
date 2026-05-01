@@ -1,5 +1,6 @@
-# medikto_app
+# medikto
 
+<<<<<<< HEAD
 
 
 ## Getting started
@@ -15,14 +16,14 @@ Already a pro? Just edit this README.md and make it your own. Want to make it ea
 
 ```
 cd existing_repo
-git remote add origin https://gitlab.com/vblpdevops-group/apps/medikto_app.git
+git remote add origin https://gitlab.com/shivachidurala370-group/medikto.git
 git branch -M main
 git push -uf origin main
 ```
 
 ## Integrate with your tools
 
-* [Set up project integrations](https://gitlab.com/vblpdevops-group/apps/medikto_app/-/settings/integrations)
+* [Set up project integrations](https://gitlab.com/shivachidurala370-group/medikto/-/settings/integrations)
 
 ## Collaborate with your team
 
@@ -91,3 +92,20 @@ For open source projects, say how it is licensed.
 
 ## Project status
 If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+=======
+A new Flutter project.
+
+## Getting Started
+
+This project is a starting point for a Flutter application.
+
+A few resources to get you started if this is your first Flutter project:
+
+- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
+- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
+- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+
+For help getting started with Flutter development, view the
+[online documentation](https://docs.flutter.dev/), which offers tutorials,
+samples, guidance on mobile development, and a full API reference.
+>>>>>>> b787a32 (Initial project upload)
