@@ -34,6 +34,7 @@ class AppTextFormFieldTitled extends StatelessWidget {
   final int? minLines;
   final bool? expands;
   final bool isRequired;
+  final VoidCallback? onTap;
 
   const AppTextFormFieldTitled({
     super.key,
@@ -55,6 +56,7 @@ class AppTextFormFieldTitled extends StatelessWidget {
     this.fillColor,
     this.obscureText,
     this.onChanged,
+    this.onTap,
     this.inputDecorationPadding,
     this.readOnly,
     this.imageIcon,
@@ -106,6 +108,8 @@ class AppTextFormFieldTitled extends StatelessWidget {
             SizedBox(
               width: width ?? MediaQuery.of(context).size.width,
               child: TextFormField(
+                onTap: onTap,
+                
                 // ✅ IMPORTANT PART
                 maxLines: expands == true ? null : (maxLines ?? 1),
                 minLines: expands == true ? null : minLines,
@@ -120,7 +124,7 @@ class AppTextFormFieldTitled extends StatelessWidget {
                 enabled: enabled ?? true,
                 controller: controller,
                 validator: validator,
-                cursorColor: focusColor ?? Color(0xFF000000),
+                cursorColor: focusColor ?? Color(0xFFffffff),
                 style:
                     textStyle ??
                     TextStyle(

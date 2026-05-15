@@ -3,6 +3,8 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:medikto/core/constants/api_urls.dart';
 import 'package:medikto/core/utils/storage_keys.dart';
+import 'package:medikto/features/auth/login_view/login_screen.dart';
+import 'package:medikto/main.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class DioClient {
@@ -36,6 +38,33 @@ class DioClient {
     return token;
   }
 
+
+Future<void> logoutUser() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    /// CLEAR STORED DATA
+    await prefs.remove(StorageKeys.token);
+    await prefs.remove(StorageKeys.refreshToken);
+    await prefs.remove(StorageKeys.userId);
+
+    /// OPTIONAL
+    /// keep onboarding so user won't see onboarding again
+    /// if you want full reset use prefs.clear()
+
+    /// CLEAR IN-MEMORY TOKEN
+    token = "";
+
+    /// CLEAR DIO AUTH HEADER
+    _dio?.options.headers.clear();
+
+    /// NAVIGATE TO LOGIN
+    navigatorKey.currentState?.pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const LoginScreen()),
+      (route) => false,
+    );
+
+    debugPrint("USER LOGGED OUT");
+  }
   dynamic init() {
     _dio = Dio();
     _dio!.options = BaseOptions(
@@ -74,33 +103,18 @@ class DioClient {
       debugPrint(response.realUri.toString());
       debugPrint(response.statusCode.toString());
 
-      if (response.statusCode == 401) {
-        // _dio.interceptors.requestLock.lock();
-        // _dio.interceptors.responseLock.lock();
-        final options = response.requestOptions;
+          if (response.statusCode == 401) {
 
-        // final fetchStatus = await authManager.refreshToken();
+            await logoutUser();
 
-        // if (fetchStatus.status != ResponseStatus.SUCCESS) {
-        //   authManager.logout();
-        //   return handler.resolve(response);
-        // }
+            return handler.reject(
+              DioException(
+                requestOptions: response.requestOptions,
+                response: response,
+                error: "Session expired",
+              ),
+            );
 
-        options.headers["Authorization"] =
-        "Bearer ${await _getAuthorizationToken()}";
-
-        // _dio.interceptors.requestLock.unlock();
-        // _dio.interceptors.responseLock.unlock();
-
-        if (options.data is FormData) {
-          final formData = FormData();
-          formData.fields.addAll(options.data.fields);
-          options.data = formData;
-        }
-
-        final Response responses = await _dio!.fetch(options);
-
-        return handler.resolve(responses);
       } else {
         return handler.resolve(response);
       }
@@ -111,29 +125,11 @@ class DioClient {
       debugPrint(error.response?.data.toString());
       debugPrint(error.response?.statusCode?.toString() ?? '');
 
-      if (error.response?.statusCode == 401) {
-        final options = error.response!.requestOptions;
+          if (error.response?.statusCode == 401) {
 
-        // final fetchStatus = await authManager.refreshToken();
+            await logoutUser();
 
-        // if (fetchStatus.status != ResponseStatus.SUCCESS) {
-        //   authManager.logout();
-        //   return handler.resolve(error.response!);
-        // }
-
-        options.headers["Authorization"] =
-        "Bearer ${await _getAuthorizationToken()}";
-
-
-        if (options.data is FormData) {
-          final formData = FormData();
-          formData.fields.addAll(options.data.fields);
-          options.data = formData;
-        }
-
-        final Response responses = await _dio!.fetch(options);
-
-        return handler.resolve(responses);
+            return handler.reject(error);
       } else {
         return handler.reject(error);
       }

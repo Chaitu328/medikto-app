@@ -1,39 +1,133 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:medikto/core/network/base_response.dart';
+import 'package:medikto/core/network/toast_utils.dart';
 import 'package:medikto/core/utils/widgets/custom_textfields.dart';
+import 'package:medikto/features/medications/data/medication_provider.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
+import 'package:path/path.dart' as path;
 
-class SelfieVerficationMedicineScreen extends StatefulWidget {
-  const SelfieVerficationMedicineScreen({super.key});
+class SelfieVerficationMedicineScreen extends ConsumerStatefulWidget {
+  final String? doseId;
+  final String? medicineName;
+  final String? dosage;
+  final String? unit;
+  const SelfieVerficationMedicineScreen({
+    super.key,
+    this.dosage,
+    this.doseId,
+    this.medicineName,
+    this.unit,
+  });
 
   @override
-  State<SelfieVerficationMedicineScreen> createState() =>
+  ConsumerState<SelfieVerficationMedicineScreen> createState() =>
       _SelfieVerficationMedicineScreenState();
 }
 
 class _SelfieVerficationMedicineScreenState
-    extends State<SelfieVerficationMedicineScreen> {
+    extends ConsumerState<SelfieVerficationMedicineScreen> {
   static const Color darkBg = Color(0xFF121212);
   static const Color surfaceColor = Color(0xFF1E1E1E);
   static const Color accentCyan = Color(0xFF00E5FF);
+  bool isLoading = false;
 
   File? capturedImage;
   final ImagePicker _picker = ImagePicker();
   bool remindersEnabled = true;
 
-  Future<void> _captureProofImage() async {
-    final XFile? image = await _picker.pickImage(
-      source: ImageSource.camera,
-      imageQuality: 80,
+
+  final TextEditingController medicationNameController =
+      TextEditingController();
+  final TextEditingController dosageController = TextEditingController();
+
+  Future<File> compressImage(File file) async {
+    final dir = await Directory.systemTemp.createTemp();
+
+    final targetPath = path.join(
+      dir.path,
+      "${DateTime.now().millisecondsSinceEpoch}.jpg",
     );
 
-    if (image != null) {
+    final compressedFile = await FlutterImageCompress.compressAndGetFile(
+      file.path,
+      targetPath,
+      quality: 20,
+      minWidth: 500,
+      minHeight: 500,
+      format: CompressFormat.jpeg,
+    );
+
+    return File(compressedFile!.path);
+  }
+Future<void> _captureProofImage() async {
+    final XFile? image = await _picker.pickImage(source: ImageSource.camera);
+
+    if (image == null) return;
+
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      final originalFile = File(image.path);
+
+      // 🔥 compressed image
+      final compressedImage = await compressImage(originalFile);
+
       setState(() {
-        capturedImage = File(image.path);
+        capturedImage = compressedImage;
+      });
+
+      final response = await ref.read(
+        verifyDoseSelfieProvider({
+          "doseId": widget.doseId,
+          "imageFile": compressedImage,
+        }).future,
+      );
+
+      if (!mounted) return;
+
+      if (response.status == ResponseStatus.SUCCESS) {
+        ref.invalidate(getTodayScheduleProvider);
+        AppToasts.showSuccess(context, response.message);
+
+        Navigator.pop(context, true);
+      } else {
+        AppToasts.showError(context, response.message);
+      }
+    } catch (e) {
+      AppToasts.showError(context, e.toString());
+    } finally {
+      if (mounted) {
+      setState(() {
+          isLoading = false;
       });
     }
   }
+}
+
+  @override
+  void initState() {
+    super.initState();
+
+    medicationNameController.text = widget.medicineName ?? "";
+
+    dosageController.text = widget.dosage ?? "";
+  }
+
+  @override
+  void dispose() {
+    medicationNameController.dispose();
+    dosageController.dispose();
+    super.dispose();
+  }
+
+
+  
 
   @override
   Widget build(BuildContext context) {
@@ -82,14 +176,25 @@ class _SelfieVerficationMedicineScreenState
                     borderRadius: BorderRadius.circular(30),
                   ),
                 ),
-                onPressed: () => _captureProofImage(),
-                icon: const Icon(Icons.camera_alt),
-                label: const Text(
-                  "Verify with Selfie",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                onPressed: isLoading ? null : _captureProofImage,
+                icon: isLoading
+                    ? const SizedBox(
+                        height: 18,
+                        width: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white54,
+                        ),
+                      )
+                    : const Icon(Icons.camera_alt),
+                label: Text(
+                  isLoading ? "Verifying..." : "Verify with Selfie",
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
-
               const SizedBox(height: 20),
 
               /// 3. LOGGING INFO
@@ -118,6 +223,8 @@ class _SelfieVerficationMedicineScreenState
 
               /// 📝 2. MEDICATION FORM FIELDS
               AppTextFormFieldTitled(
+                controller: medicationNameController,
+                readOnly: true,
                 titleTextStyle: const TextStyle(
                   color: Colors.white54,
                   fontSize: 12,
@@ -134,6 +241,8 @@ class _SelfieVerficationMedicineScreenState
                 children: [
                   Expanded(
                     child: AppTextFormFieldTitled(
+                      controller: dosageController,
+                      readOnly: true,
                       titleTextStyle: const TextStyle(
                         color: Colors.white54,
                         fontSize: 12,
@@ -146,7 +255,9 @@ class _SelfieVerficationMedicineScreenState
                     ),
                   ),
                   const SizedBox(width: 15),
-                  Expanded(child: _buildDropdownField("UNIT", "mg")),
+                  Expanded(
+                    child: _buildDropdownField("UNIT", widget.unit ?? ""),
+                  ),
                 ],
               ),
               // const SizedBox(height: 20),
@@ -202,24 +313,14 @@ class _SelfieVerficationMedicineScreenState
         onPressed: () => Navigator.pop(context),
         icon: const Icon(Icons.arrow_back, color: Colors.white),
       ),
-      title: const Row(
-        children: [
-          CircleAvatar(
-            radius: 15,
-            backgroundColor: Colors.white12,
-            child: Icon(Icons.person, color: Colors.white, size: 18),
-          ),
-          SizedBox(width: 10),
-          Text(
-            "Medikto",
-            style: TextStyle(
-              color: accentCyan,
-              fontWeight: FontWeight.bold,
-              fontSize: 18,
-            ),
-          ),
-        ],
-      ),
+      // title: Text(
+      //   "Medikto",
+      //   style: TextStyle(
+      //     color: accentCyan,
+      //     fontWeight: FontWeight.bold,
+      //     fontSize: 18,
+      //   ),
+      // ),
       actions: [
         IconButton(
           onPressed: () {},

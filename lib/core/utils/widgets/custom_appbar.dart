@@ -8,6 +8,9 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final Color? backgroundColor;
   final TextStyle? titleStyle;
 
+  /// ✅ ADD THIS
+  final List<Widget>? actions;
+
   const CustomAppBar({
     super.key,
     required this.title,
@@ -15,6 +18,9 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.onBack,
     this.backgroundColor,
     this.titleStyle,
+
+    /// ✅ ADD THIS
+    this.actions,
   });
 
   @override
@@ -22,13 +28,9 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     return AppBar(
       toolbarHeight: 80,
       backgroundColor: backgroundColor ?? Colors.white,
-      // elevation: 0,
-      // surfaceTintColor: Colors.transparent,
-      // scrolledUnderElevation: 0,
       titleSpacing: 0,
       leadingWidth: 56,
 
-      /// 🔙 Back Button
       leading: showBackButton == true
           ? InkWell(
               onTap:
@@ -37,7 +39,6 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                     if (Navigator.canPop(context)) {
                       Navigator.pop(context);
                     } else {
-                      // Optional: Redirect to Home if there's nowhere to go back to
                       Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(
@@ -53,7 +54,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
               ),
             )
           : null,
-      /// 📝 Title
+
       title: showBackButton == false
           ? Padding(
               padding: const EdgeInsets.only(left: 20),
@@ -61,11 +62,11 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                 title ?? '',
                 style:
                     titleStyle ??
-                    TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w500,
+                    const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w500,
                       color: Color(0xFFffffff),
-                ),
+                    ),
               ),
             )
           : Text(
@@ -76,10 +77,12 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                 color: Color(0xFFffffff),
               ),
             ),
+
+      /// ✅ ADD THIS
+      actions: actions,
     );
   }
 
-  /// 🔥 Required for AppBar height
   @override
   Size get preferredSize => const Size.fromHeight(60);
 }

@@ -1,23 +1,134 @@
+import 'dart:io';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:medikto/bottom_bar.dart';
+import 'package:medikto/core/network/base_response.dart';
+import 'package:medikto/core/network/toast_utils.dart';
 import 'package:medikto/core/utils/widgets/custom_appbar.dart';
 import 'package:medikto/core/utils/widgets/custom_button.dart';
 import 'package:medikto/core/utils/widgets/custom_textfields.dart';
+import 'package:medikto/features/home/add_reports/data/providers/reports_provider.dart';
 import 'package:medikto/features/home/add_reports/widgets/timings_widget.dart';
-import 'package:medikto/bottom_bar.dart';
 import 'package:medikto/features/medications/widgets/reports_action_sheet.dart';
 
-class AddPrescriptionFileScreen extends StatefulWidget {
+class AddPrescriptionFileScreen extends ConsumerStatefulWidget {
   const AddPrescriptionFileScreen({super.key});
 
   @override
-  State<AddPrescriptionFileScreen> createState() => _AddPrescriptionFileScreenState();
+  ConsumerState<AddPrescriptionFileScreen> createState() =>
+      _AddPrescriptionFileScreenState();
 }
 
-class _AddPrescriptionFileScreenState extends State<AddPrescriptionFileScreen> {
+class _AddPrescriptionFileScreenState
+    extends ConsumerState<AddPrescriptionFileScreen> {
   // Theme Palette
   static const Color darkBg = Color(0xFF121212);
   static const Color surfaceColor = Color(0xFF1E1E1E);
   static const Color accentCyan = Color(0xFF81DEEA);
+
+  final TextEditingController medicineNameController = TextEditingController();
+
+  final TextEditingController dosageController = TextEditingController();
+
+  File? selectedFile;
+
+  /// SAMPLE REMINDERS
+  /// Replace with your timings widget data if needed
+  List<Map<String, dynamic>> reminders = [];
+
+  bool isLoading = false;
+  final ImagePicker _picker = ImagePicker();
+
+  Future<void> addReminderTime() async {
+    final TimeOfDay? pickedTime = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+      builder: (context, child) {
+        return Theme(
+          data: ThemeData.dark().copyWith(
+            scaffoldBackgroundColor: darkBg,
+            colorScheme: const ColorScheme.dark(
+              primary: accentCyan,
+              surface: Color(0xFF1E1E1E),
+              onSurface: Colors.white,
+            ),
+            timePickerTheme: const TimePickerThemeData(
+              backgroundColor: Color(0xFF1E1E1E),
+              hourMinuteTextColor: Colors.white,
+              hourMinuteColor: Color(0xFF2A2A2A),
+              dialHandColor: accentCyan,
+              dialBackgroundColor: Color(0xFF2A2A2A),
+              entryModeIconColor: accentCyan,
+            ),
+            dialogTheme: const DialogThemeData(
+              backgroundColor: Color(0xFF1E1E1E),
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (pickedTime != null) {
+      final now = DateTime.now();
+
+      final dateTime = DateTime(
+        now.year,
+        now.month,
+        now.day,
+        pickedTime.hour,
+        pickedTime.minute,
+      );
+
+      final formattedTime = TimeOfDay.fromDateTime(dateTime).format(context);
+
+      setState(() {
+        reminders.add({"time": formattedTime, "enabled": true});
+      });
+    }
+  }
+
+  void removeReminder(int index) {
+    setState(() {
+      reminders.removeAt(index);
+    });
+  }
+
+  Future<void> pickFile() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['jpg', 'jpeg', 'png', 'pdf'],
+    );
+
+    if (result != null) {
+      setState(() {
+        selectedFile = File(result.files.single.path!);
+      });
+    }
+  }
+
+  Future<void> pickFromGallery() async {
+    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+
+    if (image != null) {
+      setState(() {
+        selectedFile = File(image.path);
+      });
+    }
+  }
+
+  Future<void> pickFromCamera() async {
+    final XFile? image = await _picker.pickImage(source: ImageSource.camera);
+
+    if (image != null) {
+      setState(() {
+        selectedFile = File(image.path);
+      });
+    }
+  }
 
   void _showBottomSheet(BuildContext context) {
     showModalBottomSheet(
@@ -27,14 +138,76 @@ class _AddPrescriptionFileScreenState extends State<AddPrescriptionFileScreen> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (_) => const ReportActionsSheet(
+      builder: (_) => ReportActionsSheet(
         actions: [
-          {"icon": Icons.photo, "title": "Choose from Gallery"},
-          {"icon": Icons.camera_alt, "title": "Take a Photo"},
-          {"icon": Icons.insert_drive_file, "title": "choose PDF files"},
+          {
+            "icon": Icons.photo,
+            "title": "Choose from Gallery",
+            "onTap": () async {
+              Navigator.pop(context);
+              await pickFromGallery();
+            },
+          },
+          {
+            "icon": Icons.camera_alt,
+            "title": "Take a Photo",
+            "onTap": () async {
+              Navigator.pop(context);
+              await pickFromCamera();
+            },
+          },
+          {
+            "icon": Icons.insert_drive_file,
+            "title": "choose PDF files",
+            "onTap": () async {
+              Navigator.pop(context);
+              await pickFile();
+            },
+          },
         ],
       ),
     );
+  }
+
+  Future<void> addPrescription() async {
+    if (medicineNameController.text.trim().isEmpty) {
+      AppToasts.showError(context, "Please enter medicine name");
+      return;
+    }
+
+    if (reminders.isEmpty) {
+      AppToasts.showError(context, "Please add at least one reminder");
+      return;
+    }
+
+    setState(() {
+      isLoading = true;
+    });
+
+    final response = await ref.read(
+      addPrescriptionProvider({
+        "medicineName": medicineNameController.text.trim(),
+        "dosageInstructions": dosageController.text.trim(),
+        "reminders": reminders,
+        "file": selectedFile,
+      }).future,
+    );
+
+    setState(() {
+      isLoading = false;
+    });
+
+    if (response.status == ResponseStatus.SUCCESS) {
+      AppToasts.showSuccess(context, response.message);
+
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (_) => const BaseBottomNavigationPage()),
+        (route) => false,
+      );
+    } else {
+      AppToasts.showError(context, response.message);
+    }
   }
 
   @override
@@ -66,22 +239,159 @@ class _AddPrescriptionFileScreenState extends State<AddPrescriptionFileScreen> {
 
                     /// 🔹 NAME FIELD
                     _buildTextField(
+                      controller: medicineNameController,
                       title: "Medicine Name",
                       hint: "Enter medicine name (e.g. Lipitor)",
                     ),
 
                     /// 🔹 DOSAGE FIELD
                     _buildTextField(
+                      controller: dosageController,
                       title: "Dosage & Instructions",
                       hint: "e.g. 500mg, after breakfast",
-                      maxLines: 2,
+                      maxLines: 4,
                     ),
-                    
+
                     SizedBox(height: size.height * 0.01),
 
-                    // Ensure TimingsSection is updated for dark mode internally
-                    const TimingsSection(),
-                    
+                    // const TimingsSection(),
+                    SizedBox(height: size.height * 0.01),
+
+                    /// 🔹 REMINDERS SECTION
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: surfaceColor,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: Colors.white10),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                "Reminder Timings",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+
+                              GestureDetector(
+                                onTap: addReminderTime,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 8,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: accentCyan.withOpacity(0.15),
+                                    borderRadius: BorderRadius.circular(30),
+                                  ),
+                                  child: const Row(
+                                    children: [
+                                      Icon(
+                                        Icons.add,
+                                        color: accentCyan,
+                                        size: 18,
+                                      ),
+                                      SizedBox(width: 4),
+                                      Text(
+                                        "Add Time",
+                                        style: TextStyle(
+                                          color: accentCyan,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+
+                          const SizedBox(height: 15),
+
+                          reminders.isEmpty
+                              ? const Center(
+                                  child: Text(
+                                    "No reminders added",
+                                    style: TextStyle(color: Colors.white38),
+                                  ),
+                                )
+                              : Column(
+                                  children: List.generate(reminders.length, (
+                                    index,
+                                  ) {
+                                    final reminder = reminders[index];
+
+                                    return Container(
+                                      margin: const EdgeInsets.only(bottom: 10),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 14,
+                                        vertical: 12,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: darkBg,
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Row(
+                                            children: [
+                                              const Icon(
+                                                Icons.alarm,
+                                                color: accentCyan,
+                                              ),
+                                              const SizedBox(width: 10),
+                                              Text(
+                                                reminder["time"],
+                                                style: const TextStyle(
+                                                  color: Colors.white,
+                                                  fontWeight: FontWeight.w600,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+
+                                          Row(
+                                            children: [
+                                              Switch(
+                                                value: reminder["enabled"],
+                                                activeThumbColor: accentCyan,
+                                                onChanged: (value) {
+                                                  setState(() {
+                                                    reminders[index]["enabled"] =
+                                                        value;
+                                                  });
+                                                },
+                                              ),
+
+                                              IconButton(
+                                                onPressed: () =>
+                                                    removeReminder(index),
+                                                icon: const Icon(
+                                                  Icons.delete_outline,
+                                                  color: Colors.red,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  }),
+                                ),
+                        ],
+                      ),
+                    ),
+
                     SizedBox(height: size.height * 0.03),
 
                     /// 🔹 INTERACTIVE UPLOAD AREA
@@ -117,14 +427,21 @@ class _AddPrescriptionFileScreenState extends State<AddPrescriptionFileScreen> {
                               ),
                             ),
                             const SizedBox(height: 12),
-                            const Text(
-                              "Upload Digital Prescription",
-                              style: TextStyle(
+
+                            Text(
+                              selectedFile != null
+                                  ? selectedFile!.path.split('/').last
+                                  : "Upload Digital Prescription",
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.bold,
                                 fontSize: 15,
                               ),
                             ),
+
+                            const SizedBox(height: 5),
+
                             const Text(
                               "JPG, PNG or PDF (Max 10MB)",
                               style: TextStyle(
@@ -140,9 +457,9 @@ class _AddPrescriptionFileScreenState extends State<AddPrescriptionFileScreen> {
                     SizedBox(height: size.height * 0.04),
 
                     /// 🔹 ADD MEDICATION CARD
-                    _buildAddMedicationCard(),
+                    // _buildAddMedicationCard(),
 
-                    SizedBox(height: size.height * 0.05),
+                    // SizedBox(height: size.height * 0.05),
                   ],
                 ),
               ),
@@ -150,15 +467,9 @@ class _AddPrescriptionFileScreenState extends State<AddPrescriptionFileScreen> {
 
             /// 🔹 ACTION BUTTON
             CustomButton(
-              onPressed: () => Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const BaseBottomNavigationPage(),
-                ),
-                (route) => false,
-              ),
+              onPressed: isLoading ? null : addPrescription,
               buttonColor: accentCyan,
-              buttonText: "Save Prescription",
+              buttonText: isLoading ? "Saving..." : "Save Prescription",
               textStyle: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -174,11 +485,13 @@ class _AddPrescriptionFileScreenState extends State<AddPrescriptionFileScreen> {
   }
 
   Widget _buildTextField({
+    required TextEditingController controller,
     required String title,
     required String hint,
     int maxLines = 1,
   }) {
     return AppTextFormFieldTitled(
+      controller: controller,
       title: title,
       hintText: hint,
       maxLines: maxLines,

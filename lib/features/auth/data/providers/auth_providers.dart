@@ -12,3 +12,11 @@ final loginProvider = FutureProvider.autoDispose.family<ResponseData, String>(
 final registerProvider = FutureProvider.autoDispose.family<ResponseData, Map<String, dynamic>>(
   (ref, data) => ref.watch(authProvider).registerProfile(data),
 );
+
+/// VERIFY OTP PROVIDER
+final verifyOtpProvider = FutureProvider.autoDispose
+    .family<ResponseData, Map<String, dynamic>>(
+      (ref, data) => ref
+          .watch(authProvider)
+          .verifyOtp(phone: data['phone'], otp: data['otp']),
+    );

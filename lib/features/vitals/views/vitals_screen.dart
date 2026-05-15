@@ -6,6 +6,7 @@ import 'package:medikto/features/home/add_reports/health_data/add_heart_rate.dar
 import 'package:medikto/features/home/add_reports/health_data/add_sugar_levels.dart';
 import 'package:medikto/features/home/add_reports/health_records/add_medicine_reports.dart';
 import 'package:medikto/features/home/add_reports/health_records/add_prescription_file.dart';
+import 'package:medikto/features/home/notifications/notification_screen.dart';
 import 'package:medikto/features/home/widgets/health_data_card.dart';
 
 class AddReportsScreen extends StatefulWidget {
@@ -99,7 +100,7 @@ class _AddReportsScreenState extends State<AddReportsScreen> {
     return Scaffold(
       backgroundColor: darkBg,
       appBar: CustomAppBar(
-        title: "Add Reports",
+        title: "Health Hub",
         backgroundColor: darkBg,
         titleStyle: const TextStyle(
           color: Colors.white,
@@ -107,6 +108,20 @@ class _AddReportsScreenState extends State<AddReportsScreen> {
         ),
         onBack: () {},
         showBackButton: false,
+
+        actions: [
+          IconButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const NotificationScreen()),
+              );
+            },
+            icon: const Icon(Icons.notifications, color: Color(0xFF81DEEA)),
+          ),
+
+          const SizedBox(width: 10),
+        ],
       ),
       body: Padding(
         padding: EdgeInsets.only(

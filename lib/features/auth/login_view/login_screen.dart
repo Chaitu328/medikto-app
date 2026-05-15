@@ -66,7 +66,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       if (mounted) {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => const OtpScreen()),
+          MaterialPageRoute(
+            builder: (_) => OtpScreen(phoneNumber: phoneController.text),
+          ),
         );
 
         print("Response Data:------------>>> ${response.data}");
@@ -264,16 +266,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
                 /// 🔥 BUTTON (Cyan Branding)
                 CustomButton(
-                  onPressed: isButtonEnabled
-                      ? () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const OtpScreen(),
-                            ),
-                          );
-                        }
-                      : null,
+                  onPressed: isButtonEnabled ? handleLogin : null,
+                  // onPressed: isButtonEnabled
+                  //     ? () {
+                  //         Navigator.push(
+                  //           context,
+                  //           MaterialPageRoute(
+                  //             builder: (_) => const OtpScreen(),
+                  //           ),
+                  //         );
+                  //       }
+                  //     : null,
                   buttonText: "Send OTP",
                   buttonColor: isButtonEnabled
                       ? accentCyan

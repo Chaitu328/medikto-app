@@ -1,19 +1,29 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:medikto/core/network/base_response.dart';
+import 'package:medikto/core/network/toast_utils.dart';
+import 'package:medikto/core/utils/storage_keys.dart';
 import 'package:medikto/core/utils/widgets/custom_appbar.dart';
+import 'package:medikto/features/auth/login_view/login_screen.dart';
+import 'package:medikto/features/home/notifications/notification_screen.dart';
 import 'package:medikto/features/home/premium_plans_views/premium_plans.dart';
 import 'package:medikto/features/profile/change_password_view/change_password_screen.dart';
+import 'package:medikto/features/profile/data/profile_provider.dart';
+import 'package:medikto/features/profile/models/profile_model.dart';
 import 'package:medikto/features/profile/views/edit_profile.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-class ProfileScreen extends StatefulWidget {
+class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
 
   @override
-  State<ProfileScreen> createState() => _ProfileScreenState();
+  ConsumerState<ProfileScreen> createState() => _ProfileScreenState();
 }
 
-class _ProfileScreenState extends State<ProfileScreen> {
+class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   bool isSwitched = false;
-  
+
   // Theme Colors consistent with your other dark mode screens
   static const Color darkBg = Color(0xFF121212);
   static const Color surfaceColor = Color(0xFF1E1E1E);
@@ -46,8 +56,36 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 backgroundColor: accentCyan,
                 foregroundColor: Colors.black,
               ),
-              onPressed: () {
+              onPressed: () async {
                 Navigator.pop(context);
+                final prefs = await SharedPreferences.getInstance();
+
+                /// CLEAR STORAGE
+                await prefs.remove(StorageKeys.token);
+                await prefs.remove(StorageKeys.refreshToken);
+                await prefs.remove(StorageKeys.userId);
+
+                AppToasts.showSuccess(context, "Logged out successfully");
+                await Future.delayed(const Duration(milliseconds: 500));
+
+                /// OPTIONAL
+                /// If you want complete app storage clear except onboarding:
+                ///
+                // bool onboarding =
+                //     prefs.getBool(StorageKeys.onboardingDone) ?? false;
+                // await prefs.clear();
+                // await prefs.setBool(StorageKeys.onboardingDone, onboarding);
+
+                if (!mounted) return;
+
+                /// GO TO LOGIN
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (_) => const LoginScreen()),
+                  (route) => false,
+                );
+
+                debugPrint("User Logged Out");
 
                 /// 🔥 TODO: Add your logout logic here
                 debugPrint("User Logged Out");
@@ -107,6 +145,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.sizeOf(context);
+    final profileAsync = ref.watch(getProfileProvider);
+
+    final profile = profileAsync.value?.data is ProfileModel
+        ? profileAsync.value!.data as ProfileModel
+        : null;
 
     return Scaffold(
       backgroundColor: darkBg,
@@ -119,6 +162,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
         onBack: () {},
         showBackButton: false,
+
+        actions: [
+          IconButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const NotificationScreen()),
+              );
+            },
+            icon: const Icon(Icons.notifications, color: accentCyan),
+          ),
+
+          const SizedBox(width: 10),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -138,102 +195,250 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                   );
                 },
-                child: Container(
-                  padding: const EdgeInsets.fromLTRB(15, 20, 20, 20),
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    color: surfaceColor,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.white.withOpacity(0.05)),
-                  ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            height: 50,
-                            width: 50,
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.05),
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(
-                              Icons.person,
-                              color: accentCyan,
-                              size: 28,
-                            ),
-                          ),
-                          const SizedBox(width: 15),
+                child: profileAsync.when(
+                  data: (response) {
+                    if (response.status != ResponseStatus.SUCCESS) {
+                      return const SizedBox();
+                    }
 
-                          /// 🔹 Text Section
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                "Shiva Sai Chidurala",
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              RichText(
-                                text: const TextSpan(
-                                  text: "Health ID : ",
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.white54,
-                                  ),
-                                  children: [
-                                    TextSpan(
-                                      text: "shiva@abdm",
-                                      style: TextStyle(
-                                        color: accentCyan,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              RichText(
-                                text: const TextSpan(
-                                  text: "ABDM : ",
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.white54,
-                                  ),
-                                  children: [
-                                    TextSpan(
-                                      text: "12-3456-7890-1234",
-                                      style: TextStyle(
-                                        color: accentCyan,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
+                    final ProfileModel profile = response.data;
+
+                    return GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const EditProfileScreen(),
                           ),
-                        ],
+                        );
+                      },
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(18),
+                        decoration: BoxDecoration(
+                          color: surfaceColor,
+                          borderRadius: BorderRadius.circular(22),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.05),
+                          ),
+                        ),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            /// PROFILE IMAGE
+                            Container(
+                              height: 72,
+                              width: 72,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: accentCyan.withOpacity(0.4),
+                                  width: 1.5,
+                                ),
+                                color: Colors.white.withOpacity(0.04),
+
+                                image:
+                                    profile.profilePic != null &&
+                                        profile.profilePic!.isNotEmpty
+                                    ? DecorationImage(
+                                        image: CachedNetworkImageProvider(
+                                          "${profile.profilePic!}?t=${DateTime.now().millisecondsSinceEpoch}",
+                                        ),
+                                        fit: BoxFit.cover,
+                                      )
+                                    : null,
+                              ),
+
+                              child:
+                                  profile.profilePic == null ||
+                                      profile.profilePic!.isEmpty
+                                  ? const Icon(
+                                      Icons.person,
+                                      color: accentCyan,
+                                      size: 34,
+                                    )
+                                  : null,
+                            ),
+                            const SizedBox(width: 14),
+
+                            /// DETAILS
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  /// NAME
+                                  Text(
+                                    profile.firstName?.isNotEmpty == true
+                                        ? profile.firstName!
+                                        : "Medikto User",
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+
+                                  const SizedBox(height: 6),
+
+                                  /// PHONE
+                                  Text(
+                                    profile.phone ?? "--",
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      color: Colors.white60,
+                                      fontSize: 13,
+                                    ),
+                                  ),
+
+                                  const SizedBox(height: 14),
+
+                                  /// BADGES
+                                  Wrap(
+                                    spacing: 8,
+                                    runSpacing: 8,
+                                    children: [
+                                      /// VERIFIED
+                                      if (profile.isVerified == true)
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 10,
+                                            vertical: 6,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: Colors.green.withOpacity(
+                                              0.12,
+                                            ),
+                                            borderRadius: BorderRadius.circular(
+                                              30,
+                                            ),
+                                          ),
+                                          child: const Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Icon(
+                                                Icons.verified,
+                                                size: 14,
+                                                color: Colors.greenAccent,
+                                              ),
+                                              SizedBox(width: 4),
+                                              Text(
+                                                "Verified",
+                                                style: TextStyle(
+                                                  color: Colors.greenAccent,
+                                                  fontSize: 11,
+                                                  fontWeight: FontWeight.w600,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+
+                                      /// SUBSCRIPTION
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 12,
+                                          vertical: 6,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color:
+                                              (profile.subscription ?? "")
+                                                      .toLowerCase() ==
+                                                  "premium"
+                                              ? accentCyan.withOpacity(0.14)
+                                              : Colors.white.withOpacity(0.06),
+                                          borderRadius: BorderRadius.circular(
+                                            30,
+                                          ),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(
+                                              (profile.subscription ?? "")
+                                                          .toLowerCase() ==
+                                                      "premium"
+                                                  ? Icons.workspace_premium
+                                                  : Icons.lock_outline,
+                                              size: 14,
+                                              color:
+                                                  (profile.subscription ?? "")
+                                                          .toLowerCase() ==
+                                                      "premium"
+                                                  ? accentCyan
+                                                  : Colors.white70,
+                                            ),
+
+                                            const SizedBox(width: 4),
+
+                                            Text(
+                                              ((profile.subscription ?? "free")
+                                                  .toUpperCase()),
+                                              style: TextStyle(
+                                                color:
+                                                    (profile.subscription ?? "")
+                                                            .toLowerCase() ==
+                                                        "premium"
+                                                    ? accentCyan
+                                                    : Colors.white70,
+                                                fontSize: 11,
+                                                fontWeight: FontWeight.w700,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                            /// EDIT BUTTON
+                            InkWell(
+                              borderRadius: BorderRadius.circular(14),
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => const EditProfileScreen(),
+                                  ),
+                                );
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.05),
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                                child: const Icon(
+                                  Icons.edit_outlined,
+                                  color: accentCyan,
+                                  size: 20,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                      const Icon(
-                        Icons.arrow_forward_ios,
-                        color: Colors.white24,
-                        size: 16,
-                      ),
-                    ],
+                    );
+                  },
+
+                  loading: () => const Center(
+                    child: CircularProgressIndicator(color: accentCyan),
                   ),
+
+                  error: (e, _) => const SizedBox(),
                 ),
               ),
 
-              SizedBox(height: screenSize.height * 0.02),
-              _buildPremiumCard(),
-              
+              if ((profile?.subscription ?? "").toLowerCase() != "premium") ...[
+                SizedBox(height: screenSize.height * 0.02),
+
+                _buildPremiumCard(),
+              ],
               SizedBox(height: screenSize.height * 0.02),
 
               /// 🔹 Settings Section
@@ -337,14 +542,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
               /// 🔹 Logout
               _buildSection(
-                
                 children: [
                   _ListItem(
                     icon: Icons.logout,
                     title: "Logout",
                     color: Colors.white70,
                     onTap: _showLogoutDialog, // 👈 ADD THIS,
-                    
                   ),
                 ],
               ),
@@ -390,7 +593,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 fontSize: 14,
                 fontWeight: FontWeight.bold,
                 color: accentCyan,
-                
               ),
             ),
             const SizedBox(height: 6),
@@ -400,8 +602,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
     );
   }
+
   Widget _buildPremiumCard() {
-    return _AnimatedPremiumCard(
+    return _PremiumCard(
       onTap: () {
         Navigator.push(
           context,
@@ -411,7 +614,36 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  Widget _profileInfoTile({required String title, required String value}) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 4),
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.03),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.white.withOpacity(0.04)),
+      ),
+      child: Column(
+        children: [
+          Text(
+            value,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+            ),
+          ),
 
+          const SizedBox(height: 4),
+
+          Text(
+            title,
+            style: const TextStyle(color: Colors.white54, fontSize: 11),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _ListItem extends StatelessWidget {
@@ -459,146 +691,86 @@ class _ListItem extends StatelessWidget {
   }
 }
 
-
-class _AnimatedPremiumCard extends StatefulWidget {
+class _PremiumCard extends StatelessWidget {
   final VoidCallback onTap;
 
-  const _AnimatedPremiumCard({required this.onTap});
-
-  @override
-  State<_AnimatedPremiumCard> createState() => _AnimatedPremiumCardState();
-}
-
-class _AnimatedPremiumCardState extends State<_AnimatedPremiumCard>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 3),
-    )..repeat(); // smooth infinite loop
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
+  const _PremiumCard({required this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    return RepaintBoundary(
-      child: AnimatedBuilder(
-        animation: _controller,
-        builder: (_, __) {
-          return Container(
-            margin: const EdgeInsets.only(bottom: 4),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20),
-              gradient: SweepGradient(
-                colors: const [
-                  Color(0xFF81DEEA),
-                  Color(0xFF4D6AFF),
-                  Color(0xFF81DEEA),
-                ],
-                stops: const [0.0, 0.5, 1.0],
-                transform: GradientRotation(_controller.value * 6.28),
+    return InkWell(
+      borderRadius: BorderRadius.circular(18),
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: const Color(0xFF1E1E1E),
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: const Color(0xFF81DEEA).withOpacity(0.15)),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: const Color(0xFF81DEEA).withOpacity(0.12),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.workspace_premium,
+                color: Color(0xFF81DEEA),
+                size: 24,
               ),
             ),
-            child: Container(
-              margin: const EdgeInsets.all(1.5), // border thickness
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: const Color(0xFF1E1E1E),
-                borderRadius: BorderRadius.circular(18),
+
+            const SizedBox(width: 14),
+
+            const Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Upgrade to Premium",
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+
+                  SizedBox(height: 4),
+
+                  Text(
+                    "Unlock smart reports & insights",
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(color: Colors.white54, fontSize: 12),
+                  ),
+                ],
               ),
-              child: InkWell(
-                borderRadius: BorderRadius.circular(18),
-                onTap: widget.onTap,
-                child: Row(
-                  children: [
-                    /// 🔥 PREMIUM ICON (Glow effect)
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: const Color(0xFF81DEEA).withAlpha(50),
-                      ),
-                      child: const Icon(
-                        Icons.workspace_premium,
-                        color: Color(0xFF81DEEA),
-                        size: 26,
-                      ),
-                    ),
+            ),
 
-                    const SizedBox(width: 14),
+            const SizedBox(width: 10),
 
-                    /// 🔹 TEXT
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: const [
-                          Text(
-                            "Go Premium",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          SizedBox(height: 4),
-                          Text(
-                            "Unlock insights, smart alerts & reports",
-                            style: TextStyle(
-                              color: Colors.white54,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    /// 🔹 CTA (Better UX)
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 14,
-                        vertical: 8,
-                      ),
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFF81DEEA), Color(0xFF4D6AFF)],
-                        ),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: const Row(
-                        children: [
-                          Text(
-                            "UPGRADE",
-                            style: TextStyle(
-                              color: Colors.black,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 11,
-                            ),
-                          ),
-                          SizedBox(width: 4),
-                          Icon(
-                            Icons.arrow_forward_ios,
-                            size: 10,
-                            color: Colors.black,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: const Color(0xFF81DEEA),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: const Text(
+                "UPGRADE",
+                style: TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 11,
                 ),
               ),
             ),
-          );
-        },
+          ],
+        ),
       ),
     );
   }

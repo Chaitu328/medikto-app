@@ -1,21 +1,26 @@
 import 'dart:io';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:medikto/core/network/base_response.dart';
 import 'package:medikto/core/network/toast_utils.dart';
 import 'package:medikto/core/utils/widgets/custom_button.dart';
 import 'package:medikto/core/utils/widgets/custom_textfields.dart';
 import 'package:medikto/features/auth/widgets/gender_selection_widget.dart';
+import 'package:medikto/features/profile/data/profile_provider.dart';
+import 'package:medikto/features/profile/models/profile_model.dart';
 import 'package:permission_handler/permission_handler.dart';
 
-class EditProfileScreen extends StatefulWidget {
+class EditProfileScreen extends ConsumerStatefulWidget {
   const EditProfileScreen({super.key});
 
   @override
-  State<EditProfileScreen> createState() => _EditProfileScreenState();
+  ConsumerState<EditProfileScreen> createState() => _EditProfileScreenState();
 }
 
-class _EditProfileScreenState extends State<EditProfileScreen> {
+class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   // Theme Colors
   static const Color darkBg = Color(0xFF121212);
   static const Color surfaceColor = Color(0xFF1E1E1E);
@@ -23,6 +28,48 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   static const Color primaryBlue = Color(0xFF213598);
   File? selectedImage;
   final ImagePicker _picker = ImagePicker();
+
+  final firstNameController = TextEditingController();
+  final phoneController = TextEditingController();
+  final bloodGroupController = TextEditingController();
+  final ageController = TextEditingController();
+  final heightController = TextEditingController();
+  final weightController = TextEditingController();
+
+  String selectedGender = "male";
+
+  bool isLoading = false;
+  bool isDataLoaded = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      loadProfileData();
+    });
+  }
+
+  Future<void> loadProfileData() async {
+    final response = await ref.read(profileProvider).getProfile();
+
+    if (response.status == ResponseStatus.SUCCESS) {
+      final ProfileModel profile = response.data;
+
+      firstNameController.text = profile.firstName ?? "";
+      phoneController.text = profile.phone ?? "";
+      bloodGroupController.text = profile.bloodGroup ?? "";
+      ageController.text = profile.age?.toString() ?? "";
+      heightController.text = profile.height?.toString() ?? "";
+      weightController.text = profile.weight?.toString() ?? "";
+
+      selectedGender = (profile.gender ?? "male").toLowerCase();
+
+      setState(() {
+        isDataLoaded = true;
+      });
+    }
+  }
 
   void _showImagePickerSheet() {
     showModalBottomSheet(
@@ -91,6 +138,62 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     }
   }
 
+
+Future<void> updateProfile() async {
+    if (isLoading) return;
+
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      final response = await ref
+          .read(profileProvider)
+          .updateProfile(
+            firstName: firstNameController.text.trim(),
+            phone: phoneController.text.trim(),
+            bloodGroup: bloodGroupController.text.trim(),
+            gender: selectedGender.toLowerCase(),
+            age: ageController.text.trim(),
+            height: heightController.text.trim(),
+            weight: weightController.text.trim(),
+            image: selectedImage,
+          );
+
+      if (!mounted) return;
+
+      setState(() {
+        isLoading = false;
+      });
+
+      if (response.status == ResponseStatus.SUCCESS) {
+        AppToasts.showSuccess(context, "Profile updated successfully");
+
+        /// REFRESH PROFILE
+        ref.invalidate(getProfileProvider);
+
+        /// SMALL DELAY FOR SMOOTH UX
+        await Future.delayed(const Duration(milliseconds: 500));
+
+        if (mounted) {
+          Navigator.pop(context, true);
+        }
+      } else {
+        AppToasts.showError(context, response.message);
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
+
+        AppToasts.showError(context, "Something went wrong");
+      }
+
+      debugPrint("UPDATE PROFILE ERROR => $e");
+    }
+  }
+
   Widget _sheetOption(IconData icon, String title, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
@@ -106,6 +209,19 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         ],
       ),
     );
+  }
+
+
+
+  @override
+  void dispose() {
+    firstNameController.dispose();
+    phoneController.dispose();
+    bloodGroupController.dispose();
+    ageController.dispose();
+    heightController.dispose();
+    weightController.dispose();
+    super.dispose();
   }
   
   
@@ -177,11 +293,38 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                       image: FileImage(selectedImage!),
                                       fit: BoxFit.cover,
                                     )
+                                  : isDataLoaded &&
+                                        ref
+                                                .read(getProfileProvider)
+                                                .value
+                                                ?.data
+                                                ?.profilePic !=
+                                            null &&
+                                        ref
+                                            .read(getProfileProvider)
+                                            .value!
+                                            .data
+                                            .profilePic!
+                                            .isNotEmpty
+                                  ? DecorationImage(
+                                      image: CachedNetworkImageProvider(
+                                        "${ref.read(getProfileProvider).value!.data.profilePic!}?t=${DateTime.now().millisecondsSinceEpoch}",
+                                      ),
+                                      fit: BoxFit.cover,
+                                    )
                                   : null,
                             ),
 
                             /// 🔥 DEFAULT ICON IF NO IMAGE
-                            child: selectedImage == null
+                            child:
+                                (selectedImage == null &&
+                                    !(isDataLoaded &&
+                                        ref
+                                                .read(getProfileProvider)
+                                                .value
+                                                ?.data
+                                                ?.profilePic !=
+                                            null))
                                 ? const Icon(
                                     Icons.person,
                                     size: 60,
@@ -233,6 +376,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
                   /// 🔹 Input Fields
                   _buildField(
+                    controller: firstNameController,
                     title: "First Name",
                     hint: "Enter your first name",
                   ),
@@ -240,6 +384,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   const SizedBox(height: 15),
 
                   AppTextFormFieldTitled(
+                    controller: phoneController,
                     
                     title: "Contact",
                     hintText: "Enter phone number",
@@ -274,6 +419,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   const SizedBox(height: 15),
 
                   _buildField(
+                    controller: bloodGroupController,
                     title: "Blood Group",
                     hint: "Select Blood Group",
                     suffixIcon: Icons.keyboard_arrow_down_rounded,
@@ -287,13 +433,24 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     children: [
                       Expanded(
                         flex: 1,
-                        child: _buildField(title: "Age", hint: "Age"),
+                        child: _buildField(
+                          title: "Age",
+                          hint: "Age",
+                          controller: ageController,
+                        ),
                       ),
                       const SizedBox(width: 15),
-                      const Expanded(
+                      Expanded(
                         flex: 2,
                         child:
-                            GenderSection(), // Ensure internal widget supports Dark Mode
+                            GenderSection(
+                          selectedGender: selectedGender,
+                          onChanged: (value) {
+                            setState(() {
+                              selectedGender = value;
+                            });
+                          },
+                        )
                       )
                     ],
                   ),
@@ -305,6 +462,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     children: [
                       Expanded(
                         child: _buildField(
+                          controller: heightController,
                           title: "Height",
                           hint: "Cm",
                           suffixIcon: Icons.height,
@@ -313,6 +471,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       const SizedBox(width: 15),
                       Expanded(
                         child: _buildField(
+                          controller: weightController,
                           title: "Weight",
                           hint: "Kg's",
                           suffixIcon: Icons.monitor_weight_outlined,
@@ -335,12 +494,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             right: 20,
             bottom: 20,
             child: CustomButton(
-              onPressed: () => Navigator.pop(context),
+              onPressed: updateProfile,
+              isLoading: isLoading,
               buttonColor: accentCyan, // Cyan pops better in Dark Mode
               buttonText: "Save Changes",
               textStyle: const TextStyle(
                 fontSize: 18,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.bold, 
                 color: Colors.black,
               ),
             ),
@@ -352,11 +512,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   /// 🔥 Dark Mode Field Helper
   Widget _buildField({
+    required TextEditingController controller,
     required String title,
     required String hint,
     IconData? suffixIcon,
   }) {
     return AppTextFormFieldTitled(
+      controller: controller,
       focusColor: accentCyan,
       hintText: hint,
       hintStyle: const TextStyle(

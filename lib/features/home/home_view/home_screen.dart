@@ -1,23 +1,30 @@
 import 'dart:async';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:medikto/bottom_bar.dart';
 import 'package:medikto/core/utils/widgets/custom_button.dart';
 import 'package:medikto/core/utils/widgets/custom_textfields.dart';
+import 'package:medikto/features/home/add_reports/data/providers/reports_provider.dart';
+import 'package:medikto/features/home/add_reports/models/vitals_model.dart';
 import 'package:medikto/features/home/add_reports/widgets/timings_widget.dart';
 import 'package:medikto/features/home/notifications/notification_screen.dart';
-import 'package:medikto/features/home/premium_plans_views/premium_plans.dart';
-import 'package:medikto/features/medications/views/medication_verification_screen.dart';
-import 'package:medikto/features/medications/widgets/medication_log_card.dart';
+import 'package:medikto/features/medications/data/medication_provider.dart';
+import 'package:medikto/features/medications/models/adherence_model.dart';
+import 'package:medikto/features/medications/models/today_scheduled_model.dart';
 import 'package:medikto/features/medications/widgets/reports_action_sheet.dart';
+import 'package:medikto/features/profile/data/profile_provider.dart';
+import 'package:medikto/features/profile/models/profile_model.dart';
 
-class HomeScreen extends StatefulWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends ConsumerState<HomeScreen> {
   // Brand Colors modified for Dark Mode visibility
   static const Color primaryBlue = Color(0xFF4D6AFF); // Brightened for dark bg
   static const Color darkBg = Color(0xFF121212);
@@ -25,205 +32,406 @@ class _HomeScreenState extends State<HomeScreen> {
 
   String selectedPeriod = "Morning"; // Default selection
 
+  DateTime? _parseMedicationTime(String? time) {
+    if (time == null || time.isEmpty) return null;
+
+    try {
+      final now = DateTime.now();
+
+      final cleaned = time.trim().toUpperCase();
+
+      final regex = RegExp(r'(\d{1,2}):(\d{2})\s?(AM|PM)');
+      final match = regex.firstMatch(cleaned);
+
+      if (match == null) return null;
+
+      int hour = int.parse(match.group(1)!);
+      final minute = int.parse(match.group(2)!);
+      final meridian = match.group(3);
+
+      if (meridian == "PM" && hour != 12) {
+        hour += 12;
+      }
+
+      if (meridian == "AM" && hour == 12) {
+        hour = 0;
+      }
+
+      return DateTime(now.year, now.month, now.day, hour, minute);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  TodayScheduleModel? _getNextDose(List<TodayScheduleModel> medications) {
+    final now = DateTime.now();
+
+    final upcoming = medications.where((medication) {
+      final dateTime = _parseMedicationTime(medication.time);
+
+      if (dateTime == null) return false;
+
+      // ❌ Skip already taken medicines
+      final status = (medication.status ?? "").toLowerCase();
+
+      if (status == "taken") {
+        return false;
+      }
+
+      // ✅ Only future medicines
+      return dateTime.isAfter(now);
+    }).toList();
+
+    upcoming.sort((a, b) {
+      final aTime = _parseMedicationTime(a.time)!;
+      final bTime = _parseMedicationTime(b.time)!;
+
+      return aTime.compareTo(bTime);
+    });
+
+    if (upcoming.isEmpty) return null;
+
+    return upcoming.first;
+  }
+
+  List<TodayScheduleModel> _getFilteredMedications(
+    List<TodayScheduleModel> medications,
+  ) {
+    return medications.where((medication) {
+      final timeStr = medication.time;
+
+      if (timeStr == null || timeStr.isEmpty) return false;
+
+      final lowerTime = timeStr.toLowerCase();
+
+      final regex = RegExp(r'(\d{1,2})');
+      final match = regex.firstMatch(lowerTime);
+
+      if (match == null) return false;
+
+      int hour = int.parse(match.group(1)!);
+
+      // AM / PM conversion
+      if (lowerTime.contains('pm') && hour != 12) {
+        hour += 12;
+      }
+
+      if (lowerTime.contains('am') && hour == 12) {
+        hour = 0;
+      }
+
+      // Morning (5 AM - 11:59 AM)
+      if (selectedPeriod == "Morning") {
+        return hour >= 5 && hour < 12;
+      }
+
+      // Afternoon (12 PM - 4:59 PM)
+      if (selectedPeriod == "Afternoon") {
+        return hour >= 12 && hour < 17;
+      }
+
+      // Evening (5 PM - 11:59 PM)
+      return hour >= 17 || hour < 5;
+    }).toList();
+  }
+
+  Future<void> _onRefresh() async {
+    // refresh providers
+    ref.invalidate(getProfileProvider);
+    ref.invalidate(getTodayScheduleProvider);
+    ref.invalidate(getVitalsProvider);
+    ref.invalidate(getAdherenceProvider);
+
+    // optional small delay for smooth UX
+    await Future.delayed(const Duration(milliseconds: 600));
+  }
+
+  Color _getStatusColor(String status) {
+    switch (status.toUpperCase()) {
+      case "TAKEN":
+        return const Color(0xFF4CAF50); // green
+      case "MISSED":
+        return const Color(0xFFF44336); // red
+      case "PENDING":
+      default:
+        return const Color(0xFF81DEEA); // cyan
+    }
+  }
+
+  String _getGreeting() {
+    final hour = DateTime.now().hour;
+
+    if (hour >= 5 && hour < 12) {
+      return "Good Morning";
+    } else if (hour >= 12 && hour < 17) {
+      return "Good Afternoon";
+    } else if (hour >= 17 && hour < 21) {
+      return "Good Evening";
+    } else {
+      return "Good Night";
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.sizeOf(context);
 
+    final profileAsync = ref.watch(getProfileProvider);
+
+    final profile = profileAsync.value?.data is ProfileModel
+        ? profileAsync.value!.data as ProfileModel
+        : null;
+
+    // final medicationsAsync = ref.watch(getMedicationsProvider);
+    final todayAsync = ref.watch(getTodayScheduleProvider);
+    final todayList =
+        (todayAsync.value?.data as List?)?.cast<TodayScheduleModel>() ?? [];
+    final filteredList = _getFilteredMedications(todayList);
+
+    final vitalsAsync = ref.watch(getVitalsProvider);
+
+    final vitals =
+        (vitalsAsync.value?.data as List?)?.cast<VitalsModel>() ?? [];
+
+    VitalsModel? getLatestVital(String type) {
+      try {
+        return vitals.firstWhere((e) => e.type == type);
+      } catch (e) {
+        return null;
+      }
+    }
+
+    final nextDose = _getNextDose(todayList);
+    final todayDate = DateFormat('EEEE, MMM d').format(DateTime.now());
+
+    final adherenceAsync = ref.watch(getAdherenceProvider);
+
+    final adherence = adherenceAsync.value?.data is AdherenceModel
+        ? adherenceAsync.value!.data as AdherenceModel
+        : null;
+
     return Scaffold(
       backgroundColor: darkBg,
-      appBar: _buildAppBar(size),
-      body: CustomScrollView(
-        physics: const BouncingScrollPhysics(),
-        slivers: [
-          SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-            sliver: SliverList(
-              delegate: SliverChildListDelegate([
-                const Text(
-                  "DASHBOARD",
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 1.2,
-                    color: Colors.white54,
+      appBar: _buildAppBar(size, profile),
+      body: RefreshIndicator(
+        color: const Color(0xFF81DEEA),
+        backgroundColor: darkBg,
+        onRefresh: _onRefresh,
+        child: CustomScrollView(
+          physics: const BouncingScrollPhysics(),
+          slivers: [
+            SliverPadding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              sliver: SliverList(
+                delegate: SliverChildListDelegate([
+                  const Text(
+                    "DASHBOARD",
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1.2,
+                      color: Colors.white54,
+                    ),
                   ),
-                ),
-                const Text(
-                  "Good morning, \nShiva Sai",
-                  style: TextStyle(
-                    fontSize: 26,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                  Text(
+                    "${_getGreeting()}, \n${profile?.firstName ?? "User"}",
+                    style: TextStyle(
+                      fontSize: 26,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 20),
+                  const SizedBox(height: 20),
 
-                /// 1. ADHERENCE SCORE CARD (Dark Themed)
-                _buildAdherenceCard(),
-                
+                  /// 1. ADHERENCE SCORE CARD (Dark Themed)
+                  _buildAdherenceCard(adherence),
 
-                const SizedBox(height: 20),
+                  const SizedBox(height: 20),
 
-                /// 2. NEXT DOSE QUICK ACTION
-                _buildNextDoseCard(),
-                // const SizedBox(height: 16),
+                  /// 2. NEXT DOSE QUICK ACTION
+                  // _buildNextDoseCard(),
+                  _buildNextDoseCard(nextDose),
 
-                // _buildPremiumCard(),
+                  // const SizedBox(height: 16),
 
-                
-                const SizedBox(height: 16),
+                  // _buildPremiumCard(),
+                  const SizedBox(height: 16),
 
-                
-               
-                /// 🔹 3. TODAY'S SCHEDULE HEADER
-/// 🔹 3. TODAY'S SCHEDULE HEADER
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
-                        Text(
-                          "Today's Schedule",
+                  /// 🔹 3. TODAY'S SCHEDULE HEADER
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Today's Schedule",
+                            style: TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                          SizedBox(height: 4),
+                          Text(
+                            todayDate,
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.white38,
+                            ),
+                          ),
+                        ],
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  BaseBottomNavigationPage(index: 1),
+                            ),
+                          );
+                        },
+                        child: const Text(
+                          "VIEW ALL",
                           style: TextStyle(
-                            fontSize: 22,
+                            color: Color(0xFF81DEEA),
                             fontWeight: FontWeight.bold,
-                            color: Colors.white,
+                            fontSize: 14,
                           ),
                         ),
-                        SizedBox(height: 4),
-                        Text(
-                          "Tuesday, Oct 24",
-                          style: TextStyle(fontSize: 14, color: Colors.white38),
-                        ),
-                      ],
-                    ),
-                    TextButton(
-                      onPressed: () {},
-                      child: const Text(
-                        "VIEW ALL",
-                        style: TextStyle(
-                          color: Color(0xFF81DEEA),
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                        ),
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-
-                /// 🔹 NEW: PERIOD TABS (Morning, Afternoon, Evening)
-                Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withAlpha(14),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    children: [
-                      _buildPeriodTab("Morning"),
-                      _buildPeriodTab("Afternoon"),
-                      _buildPeriodTab("Evening"),
                     ],
                   ),
-                ),
-                const SizedBox(height: 24),
+                  const SizedBox(height: 16),
 
-                /// 🔹 4. FILTERED SCHEDULE LIST
-                if (selectedPeriod == "Morning") ...[
-                  _buildScheduleItem(
-                    time: "7 AM",
-                    name: "Atorvastatin",
-                    desc: "20mg Tablet",
-                    status: "MISSED",
-                    color: Colors.redAccent,
+                  /// 🔹 NEW: PERIOD TABS (Morning, Afternoon, Evening)
+                  Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withAlpha(14),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      children: [
+                        _buildPeriodTab("Morning"),
+                        _buildPeriodTab("Afternoon"),
+                        _buildPeriodTab("Evening"),
+                      ],
+                    ),
                   ),
-                  _buildScheduleItem(
-                    time: "8 AM",
-                    name: "Vitamin D3",
-                    desc: "1000 IU Capsule",
-                    status: "TAKEN",
-                    subStatus: "Logged at 8:04 AM",
-                    color: const Color(0xFF81DEEA),
-                  ),
-                ] else if (selectedPeriod == "Afternoon") ...[
-                  _buildScheduleItem(
-                    time: "2 PM",
-                    name: "Metformin",
-                    desc: "500mg Oral",
-                    status: "UPCOMING",
-                    color: Colors.orangeAccent,
-                  ),
-                ] else ...[
-                  _buildScheduleItem(
-                    time: "9 PM",
-                    name: "Lisinopril",
-                    desc: "10mg Tablet",
-                    status: "LATER",
-                    color: Colors.white24,
-                  ),
-                ],
-                const SizedBox(height: 10),
-                const SizedBox(height: 10),
+                  const SizedBox(height: 24),
 
-                const Text(
-                  "Quick Health Look",
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-                const SizedBox(height: 10),
-              ]),
-            ),
-          ),
+                  /// 🔹 4. FILTERED SCHEDULE LIST
+                  /// 🔹 4. FILTERED SCHEDULE LIST
+                  if (filteredList.isEmpty)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 30),
+                      child: Center(
+                        child: Container(
+                          margin: const EdgeInsets.only(top: 20),
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.05),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: const Column(
+                            children: [
+                              Icon(
+                                Icons.hourglass_empty,
+                                color: Colors.white30,
+                                size: 40,
+                              ),
+                              SizedBox(height: 10),
+                              Text(
+                                "No medicines scheduled",
+                                style: TextStyle(color: Colors.white54),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    )
+                  else
+                    ...filteredList.map((medication) {
+                      final status = (medication.status ?? "PENDING")
+                          .toUpperCase();
 
-          /// 5. VITALS GRID (Dark Cards)
-          SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            sliver: SliverGrid(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                mainAxisSpacing: 15,
-                crossAxisSpacing: 15,
-                mainAxisExtent: 110,
+                      return _buildScheduleItem(
+                        time: medication.time ?? "--",
+                        name: medication.name ?? "Medicine",
+                        desc: medication.dosage ?? "",
+                        status: status,
+                        color: _getStatusColor(status),
+                      );
+                    }).toList(),
+                  SizedBox(height: 10),
+                  const SizedBox(height: 10),
+
+                  const Text(
+                    "Quick Health Look",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                ]),
               ),
-              delegate: SliverChildListDelegate([
-                _buildSmallVitalCard(
-                  "Pulse",
-                  "72",
-                  "BPM",
-                  Icons.favorite,
-                  Colors.redAccent,
-                ),
-                _buildSmallVitalCard(
-                  "Sleep",
-                  "8h 12m",
-                  "",
-                  Icons.bedtime,
-                  Colors.orange,
-                ),
-                _buildSmallVitalCard(
-                  "BP",
-                  "120/80",
-                  "mmHg",
-                  Icons.bloodtype,
-                  Colors.blueAccent,
-                ),
-                _buildSmallVitalCard(
-                  "Sugar",
-                  "106",
-                  "mg/dl",
-                  Icons.local_drink,
-                  Colors.greenAccent,
-                ),
-              ]),
             ),
-          ),
-          const SliverToBoxAdapter(child: SizedBox(height: 120)),
-        ],
+
+            /// 5. VITALS GRID (Dark Cards)
+            SliverPadding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              sliver: SliverGrid(
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  mainAxisSpacing: 15,
+                  crossAxisSpacing: 15,
+                  mainAxisExtent: 110,
+                ),
+                delegate: SliverChildListDelegate([
+                  _buildSmallVitalCard(
+                    "Pulse",
+                    getLatestVital("heartRate")?.heartRate?.toString() ?? "--",
+                    "BPM",
+                    Icons.favorite,
+                    Colors.redAccent,
+                  ),
+
+                  _buildSmallVitalCard(
+                    "Temperature",
+                    getLatestVital("temperature")?.temperature?.toString() ??
+                        "--",
+                    "°F",
+                    Icons.thermostat,
+                    Colors.orange,
+                  ),
+
+                  _buildSmallVitalCard(
+                    "BP",
+                    getLatestVital("bloodPressure") != null
+                        ? "${getLatestVital("bloodPressure")?.systolic}/${getLatestVital("bloodPressure")?.diastolic}"
+                        : "--/--",
+                    "mmHg",
+                    Icons.bloodtype,
+                    Colors.blueAccent,
+                  ),
+
+                  _buildSmallVitalCard(
+                    "Sugar",
+                    getLatestVital("sugar")?.sugarLevel?.toString() ?? "--",
+                    "mg/dl",
+                    Icons.local_drink,
+                    Colors.greenAccent,
+                  ),
+                ]),
+              ),
+            ),
+            const SliverToBoxAdapter(child: SizedBox(height: 120)),
+          ],
+        ),
       ),
     );
   }
@@ -255,7 +463,36 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildAdherenceCard() {
+  Widget _buildAdherenceCard(AdherenceModel? adherence) {
+    final percentage = adherence?.weeklyAdherence ?? 0;
+
+    final progressValue = percentage / 100;
+
+    final status = adherence?.weeklyStatus ?? "No Data";
+
+    Color statusColor;
+
+    switch (status.toLowerCase()) {
+      case "excellent":
+        statusColor = Colors.greenAccent;
+        break;
+
+      case "good":
+        statusColor = const Color(0xFF81DEEA);
+        break;
+
+      case "average":
+        statusColor = Colors.orangeAccent;
+        break;
+
+      case "poor":
+        statusColor = Colors.redAccent;
+        break;
+
+      default:
+        statusColor = Colors.white54;
+    }
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -293,17 +530,17 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
                 const SizedBox(height: 4),
-                const Text(
-                  "Last 7 days performance",
+                Text(
+                  "${adherence?.period ?? "-"} performance",
                   style: TextStyle(fontSize: 11, color: Colors.white54),
                 ),
                 const SizedBox(height: 16),
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.baseline,
                   textBaseline: TextBaseline.alphabetic,
-                  children: const [
+                  children: [
                     Text(
-                      "85%",
+                      "$percentage%",
                       style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
@@ -322,6 +559,38 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ],
                 ),
+                const SizedBox(height: 10),
+
+                /// STATUS CONTAINER
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: statusColor.withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(30),
+                    border: Border.all(color: statusColor.withOpacity(0.4)),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.favorite, size: 14, color: statusColor),
+
+                      const SizedBox(width: 6),
+
+                      Text(
+                        status,
+                        style: TextStyle(
+                          color: statusColor,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 11,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
@@ -334,7 +603,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 height: 90,
                 width: 90,
                 child: CircularProgressIndicator(
-                  value: 0.85,
+                  value: progressValue,
                   strokeWidth: 8,
                   backgroundColor: Colors.white.withOpacity(0.1),
                   color: const Color(0xFF81DEEA),
@@ -362,8 +631,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-
-  Widget _buildNextDoseCard() {
+  Widget _buildNextDoseCard(TodayScheduleModel? nextDose) {
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -390,11 +658,11 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: const Icon(Icons.medication, color: Color(0xFF81DEEA)),
                 ),
                 const SizedBox(width: 15),
-                const Expanded(
+                Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
+                      const Text(
                         "NEXT DOSE",
                         style: TextStyle(
                           color: Colors.white70,
@@ -402,14 +670,30 @@ class _HomeScreenState extends State<HomeScreen> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
+
                       Text(
-                        "Metformin 500mg",
-                        style: TextStyle(
+                        (nextDose == null)
+                            ? "No upcoming medicines"
+                            : "${nextDose.name ?? ''} (${nextDose.dosage ?? ''})",
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
+
+                      if (nextDose != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4),
+                          child: Text(
+                            nextDose.time ?? "",
+                            style: const TextStyle(
+                              color: Color(0xFF81DEEA),
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
                     ],
                   ),
                 ),
@@ -453,7 +737,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-Widget _buildScheduleItem({
+  Widget _buildScheduleItem({
     required String time,
     required String name,
     required String desc,
@@ -465,19 +749,16 @@ Widget _buildScheduleItem({
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         // 🔹 Tinted Background: surfaceColor mixed with a hint of status color
-        color: Color.alphaBlend(
-          color.withOpacity(0.08),
-          const Color(0xFF1E1E1E),
-        ),
+        color: Color.alphaBlend(color.withAlpha(30), const Color(0xFF1E1E1E)),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: color.withOpacity(0.1), // Subtle border glow
+          color: color.withAlpha(60), // Subtle border glow
           width: 1,
-      ),
+        ),
       ),
       child: IntrinsicHeight(
-      child: Row(
-        children: [
+        child: Row(
+          children: [
             // 🔹 Left Thick Accent Strip
             Container(
               width: 5,
@@ -498,33 +779,13 @@ Widget _buildScheduleItem({
                     // 🔹 Time Section
                     SizedBox(
                       width: 45,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            time,
-                            style: TextStyle(
-                              color: color.withOpacity(0.9),
-                              fontWeight: FontWeight.bold,
-                              fontSize: 12,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Container(
-                            height: 6,
-                            width: 6,
-                            decoration: BoxDecoration(
-                              color: color,
-                              shape: BoxShape.circle,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: color.withOpacity(0.4),
-                                  blurRadius: 4,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
+                      child: Text(
+                        time,
+                        style: TextStyle(
+                          color: color.withOpacity(0.9),
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                        ),
                       ),
                     ),
                     const SizedBox(width: 15),
@@ -537,6 +798,7 @@ Widget _buildScheduleItem({
                         children: [
                           Text(
                             name,
+                            textAlign: TextAlign.center,
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 16,
@@ -591,15 +853,15 @@ Widget _buildScheduleItem({
                       ],
                     ),
                   ],
+                ),
               ),
             ),
-          ),
-        ],
-      ),
+          ],
+        ),
       ),
     );
   }
- 
+
   Widget _buildSmallVitalCard(
     String title,
     String value,
@@ -623,19 +885,19 @@ Widget _buildScheduleItem({
           Text(
             title,
             style: const TextStyle(
-              fontSize: 11,
+              fontSize: 14,
               color: Colors.white54,
               fontWeight: FontWeight.w600,
             ),
           ),
-          const SizedBox(height: 2),
+          const SizedBox(height: 6),
           FittedBox(
             fit: BoxFit.scaleDown,
             child: RichText(
               text: TextSpan(
                 children: [
                   TextSpan(
-                    text: value,
+                    text: value + " ",
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -644,7 +906,7 @@ Widget _buildScheduleItem({
                   ),
                   TextSpan(
                     text: " $unit",
-                    style: const TextStyle(fontSize: 10, color: Colors.white38),
+                    style: const TextStyle(fontSize: 12, color: Colors.white38),
                   ),
                 ],
               ),
@@ -655,7 +917,7 @@ Widget _buildScheduleItem({
     );
   }
 
-  PreferredSizeWidget _buildAppBar(Size size) {
+  PreferredSizeWidget _buildAppBar(Size size, ProfileModel? profile) {
     return AppBar(
       toolbarHeight: 80,
       elevation: 0,
@@ -663,49 +925,66 @@ Widget _buildScheduleItem({
       automaticallyImplyLeading: false,
       title: Row(
         children: [
-          const CircleAvatar(
+          CircleAvatar(
+            radius: 22,
             backgroundColor: Colors.white10,
-            child: Icon(Icons.person, color: Colors.white),
+
+            backgroundImage:
+                profile?.profilePic != null && profile!.profilePic!.isNotEmpty
+                ? CachedNetworkImageProvider(
+                    "${profile.profilePic!}?t=${DateTime.now().millisecondsSinceEpoch}",
+                  )
+                : null,
+
+            child: profile?.profilePic == null || profile!.profilePic!.isEmpty
+                ? const Icon(Icons.person, color: Colors.white)
+                : null,
           ),
           const SizedBox(width: 12),
-          const Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                "Hello Shiva!",
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
+
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  "Hello ${profile?.firstName ?? "User"}!",
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
                 ),
-              ),
-              Text(
-                "Ready for your checkup?",
-                style: TextStyle(fontSize: 11, color: Colors.white54),
-              ),
-            ],
+
+                const Text(
+                  "Ready for your checkup?",
+                  style: TextStyle(fontSize: 11, color: Colors.white54),
+                ),
+              ],
+            ),
           ),
         ],
       ),
       actions: [
         IconButton(
           onPressed: () {
-            // Handle notifications
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => NotificationScreen()),
             );
           },
           icon: const Badge(
-            child: Icon(Icons.notifications_none, color: Colors.white),
+            child: Icon(Icons.notifications, color: Color(0xFF81DEEA)),
           ),
         ),
+
         const SizedBox(width: 10),
       ],
     );
   }
 }
-
 
 class _AddReportCard extends StatefulWidget {
   const _AddReportCard({super.key});
@@ -1194,7 +1473,6 @@ class NextDoseFloatingReminder extends StatelessWidget {
     );
   }
 }
-
 
 class _AnimatedPremiumCard extends StatefulWidget {
   final VoidCallback onTap;

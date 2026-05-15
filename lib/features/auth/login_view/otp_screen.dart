@@ -1,16 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:medikto/bottom_bar.dart';
+import 'package:medikto/core/network/base_response.dart';
+import 'package:medikto/features/auth/data/providers/auth_providers.dart';
 import 'package:pinput/pinput.dart';
 
-class OtpScreen extends StatefulWidget {
-  const OtpScreen({super.key});
+class OtpScreen extends ConsumerStatefulWidget {
+  final String? phoneNumber;
+  const OtpScreen({super.key, this.phoneNumber});
 
   @override
-  State<OtpScreen> createState() => _OtpScreenState();
+  ConsumerState<OtpScreen> createState() => _OtpScreenState();
 }
 
-class _OtpScreenState extends State<OtpScreen> {
+class _OtpScreenState extends ConsumerState<OtpScreen> {
   final TextEditingController _pinController = TextEditingController();
   final FocusNode _focusNode = FocusNode();
 
@@ -29,20 +33,37 @@ class _OtpScreenState extends State<OtpScreen> {
     super.dispose();
   }
 
-  Future<void> _verifyOtp() async {
+Future<void> _verifyOtp() async {
     if (_loading) return;
+
+    if (_pinController.text.length != 6) {
+      return;
+    }
+
     setState(() => _loading = true);
 
-    await Future.delayed(const Duration(seconds: 1));
+    final response = await ref
+        .read(authProvider)
+        .verifyOtp(phone: widget.phoneNumber ?? "", otp: _pinController.text);
+
+    setState(() => _loading = false);
+
     if (!mounted) return;
+
+    if (response.status == ResponseStatus.SUCCESS) {
+      print("TOKEN SAVED SUCCESSFULLY");
 
     Navigator.pushAndRemoveUntil(
       context,
-      MaterialPageRoute(builder: (_) => const BaseBottomNavigationPage()),
+        MaterialPageRoute(builder: (_) => const BaseBottomNavigationPage()),
       (route) => false,
     );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(response.message), backgroundColor: Colors.red),
+      );
   }
-
+}
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.sizeOf(context);
@@ -108,8 +129,8 @@ class _OtpScreenState extends State<OtpScreen> {
 
                 const SizedBox(height: 8),
 
-                const Text(
-                  "Code sent to +91 9701222010. Please enter it below to verify.",
+                Text(
+                  "Code sent to ${widget.phoneNumber}. Please enter it below to verify.",
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w400,

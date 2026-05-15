@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:medikto/core/utils/storage_keys.dart';
 import 'package:medikto/features/onboarding/views/overall_features_screen.dart';
 import 'package:medikto/features/onboarding/views/welcome_screen.dart';
 import 'package:medikto/features/onboarding/widgets/onboarding_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class OnboardingScreens extends StatefulWidget {
   const OnboardingScreens({super.key});
@@ -54,13 +56,19 @@ class _OnboardingScreensState extends State<OnboardingScreens> {
     super.dispose();
   }
 
-  void _next() {
+  Future<void> _next() async {
     if (currentIndex.value < data.length - 1) {
       _controller.nextPage(
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
       );
     } else {
+
+      /// SAVE ONBOARDING STATUS
+      final prefs = await SharedPreferences.getInstance();
+
+      await prefs.setBool(StorageKeys.onboardingDone, true);
+
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => const OverrallFeaturesScreen()),
@@ -68,7 +76,33 @@ class _OnboardingScreensState extends State<OnboardingScreens> {
     }
   }
 
-  void _skip() {
+  // void _next() {
+  //   if (currentIndex.value < data.length - 1) {
+  //     _controller.nextPage(
+  //       duration: const Duration(milliseconds: 300),
+  //       curve: Curves.easeInOut,
+  //     );
+  //   } else {
+  //     Navigator.pushReplacement(
+  //       context,
+  //       MaterialPageRoute(builder: (_) => const OverrallFeaturesScreen()),
+  //     );
+  //   }
+  // }
+
+  // void _skip() {
+  //   Navigator.pushReplacement(
+  //     context,
+  //     MaterialPageRoute(builder: (_) => const WelcomeScreen()),
+  //   );
+  // }
+
+  Future<void> _skip() async {
+    /// SAVE ONBOARDING STATUS
+    final prefs = await SharedPreferences.getInstance();
+
+    await prefs.setBool(StorageKeys.onboardingDone, true);
+
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (_) => const WelcomeScreen()),
