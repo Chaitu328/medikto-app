@@ -272,6 +272,13 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                           onIdTypeChanged: (val) {
                             setState(() => selectedIdType = val);
                           },
+                          selectedGender: selectedGender,
+
+                          onGenderChanged: (value) {
+                            setState(() {
+                              selectedGender = value;
+                            });
+                          },
                         ),
 
                         SizedBox(height: size.height * 0.02),
@@ -356,6 +363,9 @@ class _FormFields extends StatelessWidget {
   final Function(String) onIdTypeChanged;
   final TextEditingController passCont;
   final TextEditingController confirmPassCont;
+  final String selectedGender;
+  final Function(String) onGenderChanged;
+  
   const _FormFields({
     required this.nameCont,
     required this.phoneCont,
@@ -365,10 +375,14 @@ class _FormFields extends StatelessWidget {
     required this.confirmPassCont,
     required this.selectedIdType,
     required this.onIdTypeChanged,
+    required this.selectedGender,
+    required this.onGenderChanged,
   });
 
   static const Color surfaceColor = Color(0xFF1E1E1E);
   static const Color accentCyan = Color(0xFF81DEEA);
+
+  
 
   Future<void> _selectDOB(
     BuildContext context,
@@ -407,6 +421,8 @@ class _FormFields extends StatelessWidget {
       controller.text = formatted;
     }
   }
+
+  
 
   @override
   Widget build(BuildContext context) {
@@ -464,8 +480,13 @@ class _FormFields extends StatelessWidget {
               ),
             ),
             SizedBox(width: size.width * 0.04),
-            const Expanded(
-              child: GenderSection(),
+            Expanded(
+              child: Expanded(
+                child: GenderSection(
+                  selectedGender: selectedGender,
+                  onChanged: onGenderChanged,
+                ),
+              ),
             ), // Ensure internal widget is dark
           ],
         ),

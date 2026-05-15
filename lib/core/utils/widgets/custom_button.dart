@@ -9,6 +9,9 @@ class CustomButton extends StatefulWidget {
   final double? height;
   final Border? border;
   final BorderRadius? radius;
+
+  final bool isLoading;
+
   const CustomButton({
     super.key,
     this.onPressed,
@@ -19,6 +22,7 @@ class CustomButton extends StatefulWidget {
     this.height,
     this.border,
     this.radius,
+    this.isLoading = false,
   });
 
   @override
@@ -28,28 +32,42 @@ class CustomButton extends StatefulWidget {
 class _CustomButtonState extends State<CustomButton> {
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        widget.onPressed?.call();
-      },
-      child: Container(
-        width: double.infinity,
-        height: widget.height ?? 50,
-        decoration: BoxDecoration(
-          color: widget.buttonColor ?? Color(0xFF213598),
-          border: widget.border,
-          borderRadius: widget.radius ?? BorderRadius.circular(34),
-        ),
-        child: Center(
-          child: Text(
-            widget.buttonText ?? "",
-            style:
-                widget.textStyle ??
-                TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w400,
-                  color: Colors.white,
-                ),
+    return IgnorePointer(
+      ignoring: widget.isLoading,
+      child: AnimatedOpacity(
+        duration: const Duration(milliseconds: 200),
+        opacity: widget.isLoading ? 0.8 : 1,
+        child: GestureDetector(
+          onTap: widget.onPressed,
+          child: Container(
+            width: widget.width ?? double.infinity,
+            height: widget.height ?? 52,
+            decoration: BoxDecoration(
+              color: widget.buttonColor ?? const Color(0xFF213598),
+              border: widget.border,
+              borderRadius: widget.radius ?? BorderRadius.circular(34),
+            ),
+            child: Center(
+              child: widget.isLoading
+                  ? const SizedBox(
+                      height: 22,
+                      width: 22,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.5,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.black),
+                      ),
+                    )
+                  : Text(
+                      widget.buttonText ?? "",
+                      style:
+                          widget.textStyle ??
+                          const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w400,
+                            color: Colors.white,
+                          ),
+                    ),
+            ),
           ),
         ),
       ),

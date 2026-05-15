@@ -1,10 +1,19 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:medikto/core/network/base_response.dart';
 import 'package:medikto/features/home/notifications/notification_screen.dart';
+import 'package:medikto/features/medications/data/medication_provider.dart';
+import 'package:medikto/features/medications/models/medication_model.dart';
+import 'package:medikto/features/medications/models/today_scheduled_model.dart';
 import 'package:medikto/features/medications/views/medical_records_screen.dart';
 import 'package:medikto/features/medications/views/medication_verification_screen.dart';
 import 'package:medikto/features/medications/views/selfie_verfication_medicine.dart';
+import 'package:medikto/features/profile/data/profile_provider.dart';
+import 'package:medikto/features/profile/models/profile_model.dart';
 
 class TimelineMedicine {
+  String doseId; // 🔥 ADD THIS
   String time;
   String title;
   String sub;
@@ -12,6 +21,7 @@ class TimelineMedicine {
   bool isTaken;
 
   TimelineMedicine({
+    required this.doseId,
     required this.time,
     required this.title,
     required this.sub,
@@ -20,162 +30,371 @@ class TimelineMedicine {
   });
 }
 
-class MedicationsScreen extends StatefulWidget {
+class MedicationsScreen extends ConsumerStatefulWidget {
   const MedicationsScreen({super.key});
 
   @override
-  State<MedicationsScreen> createState() => _MedicationsScreenState();
+  ConsumerState<MedicationsScreen> createState() => _MedicationsScreenState();
 }
 
-class _MedicationsScreenState extends State<MedicationsScreen> {
+class _MedicationsScreenState extends ConsumerState<MedicationsScreen> {
   // Brand Dark Colors consistent with design
   static const Color darkBg = Color(0xFF121212); // Deep Charcoal
   static const Color surfaceColor = Color(0xFF1E1E1E); // Elevated Grey
   static const Color accentCyan = Color(0xFF81DEEA); // Branding Cyan
   static const Color dangerRed = Color(0xFFE57373); // Critical Alerts
   DateTime selectedDate = DateTime.now();
+  Map<String, bool> takenMap = {};
+  Set<String> loadingDoseIds = {};
 
-  List<TimelineMedicine> medicines = [
-    TimelineMedicine(
-      time: "08:30 AM",
-      title: "Atorvastatin 10mg",
-      sub: "Cholesterol • Post-breakfast",
-      icon: Icons.medication_rounded,
-      isTaken: true,
-    ),
-    TimelineMedicine(
-      time: "12:00 PM",
-      title: "Vitamin C 500mg",
-      sub: "Immune Support • With lunch",
-      icon: Icons.vaccines_rounded,
-    ),
-    TimelineMedicine(
-      time: "08:00 PM",
-      title: "Multivitamin",
-      sub: "Wellness • Before sleep",
-      icon: Icons.inventory_2_outlined,
-    ),
-  ];
+  List<MedicationModel> _getMedicationsForSelectedDate(
+    List<MedicationModel> medications,
+    List<TodayScheduleModel> todayList,
+  ) {
+    final filtered = medications.where((medication) {
+      if (medication.createdAt == null) return false;
 
+      final medicationDate = medication.createdAt!;
+
+      return medicationDate.year == selectedDate.year &&
+          medicationDate.month == selectedDate.month &&
+          medicationDate.day == selectedDate.day;
+    }).toList();
+
+    filtered.sort((a, b) {
+      final aTime = a.timings?.isNotEmpty == true ? a.timings!.first : "";
+
+      final bTime = b.timings?.isNotEmpty == true ? b.timings!.first : "";
+
+      final aSchedule = todayList.firstWhere(
+        (e) => e.name == a.name && e.time == aTime,
+        orElse: () => TodayScheduleModel(),
+      );
+
+      final bSchedule = todayList.firstWhere(
+        (e) => e.name == b.name && e.time == bTime,
+        orElse: () => TodayScheduleModel(),
+      );
+
+      final aTaken = aSchedule.status?.toLowerCase() == "taken";
+      final bTaken = bSchedule.status?.toLowerCase() == "taken";
+
+      /// 🔥 Pending medicines always on TOP
+      if (aTaken != bTaken) {
+        return aTaken ? 1 : -1;
+      }
+
+      // /// Then sort by time
+      // final aTime = a.timings?.isNotEmpty == true ? a.timings!.first : "";
+
+      // final bTime = b.timings?.isNotEmpty == true ? b.timings!.first : "";
+
+      return aTime.compareTo(bTime);
+    });
+
+    return filtered;
+  }
+
+  Future<void> selectDate() async {
+    final DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: selectedDate,
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+      builder: (context, child) {
+        return Theme(
+          data: ThemeData.dark().copyWith(
+            scaffoldBackgroundColor: darkBg,
+            colorScheme: const ColorScheme.dark(
+              primary: accentCyan,
+              surface: Color(0xFF1E1E1E),
+              onSurface: Colors.white,
+            ),
+            dialogTheme: const DialogThemeData(
+              backgroundColor: Color(0xFF1E1E1E),
+            ),
+            datePickerTheme: const DatePickerThemeData(
+              backgroundColor: Color(0xFF1E1E1E),
+              headerBackgroundColor: accentCyan,
+              headerForegroundColor: Colors.black,
+              dayForegroundColor: WidgetStatePropertyAll(Colors.white),
+              todayForegroundColor: WidgetStatePropertyAll(Colors.white),
+              yearForegroundColor: WidgetStatePropertyAll(Colors.white),
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (pickedDate != null) {
+      setState(() {
+        selectedDate = pickedDate;
+      });
+    }
+  }
   @override
   Widget build(BuildContext context) {
+    final medicationsAsync = ref.watch(getMedicationsProvider);
+    final todayScheduleAsync = ref.watch(getTodayScheduleProvider);
+    final todayList = todayScheduleAsync.value?.data is List<TodayScheduleModel>
+        ? todayScheduleAsync.value!.data as List<TodayScheduleModel>
+        : <TodayScheduleModel>[];
+
+    final medications = medicationsAsync.value?.data is List<MedicationModel>
+        ? medicationsAsync.value!.data as List<MedicationModel>
+        : <MedicationModel>[];
+
+    final profileAsync = ref.watch(getProfileProvider);
+    final profile = profileAsync.value?.data is ProfileModel
+        ? profileAsync.value!.data as ProfileModel
+        : null;
     return Scaffold(
       backgroundColor: darkBg,
-      appBar: _buildAppBar(),
+      appBar: _buildAppBar(profile),
       body: SafeArea(
-        child: CustomScrollView(
-          physics: const BouncingScrollPhysics(),
-          slivers: [
-            /// 🔹 1. HEADER SECTION (Compliance & Next Dose)
-            SliverPadding(
-              padding: const EdgeInsets.fromLTRB(20, 10, 20, 0),
-              sliver: SliverList(
-                delegate: SliverChildListDelegate([
-                  /// 🟢 Weekly Compliance Card
-                  // _buildWeeklyComplianceCard(),
-
-                  // const SizedBox(height: 15),
-
-                  /// 🔴 Critical Pulse / Next Dose Card
-                  _buildAddMedicationCard(),
-                ]),
-              ),
+        child: RefreshIndicator(
+          color: accentCyan,
+          backgroundColor: surfaceColor,
+          onRefresh: () async {
+            await ref.refresh(getMedicationsProvider.future);
+          },
+          child: CustomScrollView(
+            physics: const AlwaysScrollableScrollPhysics(
+              parent: BouncingScrollPhysics(),
             ),
-            const SliverToBoxAdapter(child: SizedBox(height: 20)),
-
-            /// 🔹 2. CALENDAR SECTION
-            SliverToBoxAdapter(child: _buildCalendarSection(context)),
-
-            const SliverToBoxAdapter(child: SizedBox(height: 10)),
-
-            /// 🔹 3. DAILY TIMELINE HEADER
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Row(
-                  children: [
-                    Container(
-                      height: 8,
-                      width: 8,
-                      decoration: const BoxDecoration(
-                        color: accentCyan,
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    const Text(
-                      "DAILY TIMELINE",
-                      style: TextStyle(
-                        color: Colors.white70,
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 1.1,
-                      ),
-                    ),
-                  ],
+            cacheExtent: 1200,
+            slivers: [
+              /// HEADER
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(20, 10, 20, 0),
+                sliver: SliverList(
+                  delegate: SliverChildListDelegate([
+                    RepaintBoundary(child: _buildAddMedicationCard()),
+                  ]),
                 ),
               ),
-            ),
 
-            const SliverToBoxAdapter(child: SizedBox(height: 15)),
+              const SliverToBoxAdapter(child: SizedBox(height: 20)),
 
-            /// 🔹 4. MEDICATION TIMELINE CARDS
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              sliver: SliverList(
-                delegate: SliverChildBuilderDelegate((context, index) {
-                  final item = medicines[index];
-
-                  // ✅ Only next un-taken item is enabled
-                  bool isCurrent =
-                      index == medicines.indexWhere((e) => !e.isTaken);
-
-                  return _buildAdvancedTimelineItem(
-                    item: item,
-                    isLast: index == medicines.length - 1,
-                    isCurrent: isCurrent,
-                    onMarkTaken: () {
-                      setState(() {
-                        medicines[index].isTaken = true;
-                      });
-                    },
-                  );
-                }, childCount: medicines.length),
+              /// CALENDAR
+              SliverToBoxAdapter(
+                child: RepaintBoundary(child: _buildCalendarSection(context)),
               ),
-            ),
-            const SliverToBoxAdapter(child: SizedBox(height: 15)),
 
-            /// ✅ PLACE IT HERE
-            // SliverToBoxAdapter(child: _buildAddMedicationCard()),
+              const SliverToBoxAdapter(child: SizedBox(height: 10)),
 
-            /// 🔹 5. REFILL & NOTES (Responsive Grid)
-            // SliverPadding(
-            //   padding: const EdgeInsets.all(20),
-            //   sliver: SliverGrid(
-            //     gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            //       crossAxisCount: 2,
-            //       mainAxisSpacing: 15,
-            //       crossAxisSpacing: 15,
-            //       mainAxisExtent: 140, // Increased for long text safety
-            //     ),
-            //     delegate: SliverChildListDelegate([
-            //       _buildRefillCard(),
-            //       _buildDoctorNoteCard(),
-            //     ]),
-            //   ),
-            // ),
-            const SliverToBoxAdapter(child: SizedBox(height: 10)),
+              /// TIMELINE HEADER
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Row(
+                    children: [
+                      Container(
+                        height: 8,
+                        width: 8,
+                        decoration: const BoxDecoration(
+                          color: accentCyan,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      const Text(
+                        "DAILY TIMELINE",
+                        style: TextStyle(
+                          color: Colors.white70,
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 1.1,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
 
-            /// ✅ ADD THIS HERE
-            SliverToBoxAdapter(child: _buildMedicalComplianceButton()),
+              const SliverToBoxAdapter(child: SizedBox(height: 15)),
 
-            const SliverToBoxAdapter(
-              child: SizedBox(height: 100),
-            ), // Bottom padding
-          ],
+              /// FILTERED MEDICATIONS
+              Builder(
+                builder: (context) {
+                  final filteredMedications = _getMedicationsForSelectedDate(
+                    medications,
+                    todayList,
+                  );
+
+                  final isTodaySelected = DateUtils.isSameDay(
+                    selectedDate,
+                    DateTime.now(),
+                  );
+
+                  if (filteredMedications.isEmpty) {
+                    return SliverToBoxAdapter(
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 40,
+                        ),
+                        child: Center(
+                          child: Container(
+                            margin: const EdgeInsets.only(top: 10),
+                            padding: const EdgeInsets.all(20),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withAlpha(20),
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: const Column(
+                              children: [
+                                Icon(
+                                  Icons.hourglass_empty,
+                                  color: Colors.white30,
+                                  size: 40,
+                                ),
+                                SizedBox(height: 10),
+                                Text(
+                                  "No medications for this date",
+                                  style: TextStyle(color: Colors.white54),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  }
+
+                  return SliverPadding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    sliver: SliverList(
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) {
+                          final medication = filteredMedications[index];
+
+                          final time = medication.timings?.isNotEmpty == true
+                              ? medication.timings!.first
+                              : "--";
+
+                          final currentTime =
+                              medication.timings?.isNotEmpty == true
+                              ? medication.timings!.first
+                              : "";
+
+                          final schedule = isTodaySelected
+                              ? todayList.firstWhere(
+                                  (e) =>
+                                      e.name == medication.name &&
+                                      e.time == currentTime,
+                                  orElse: () => TodayScheduleModel(),
+                                )
+                              : TodayScheduleModel(status: "taken");
+
+                          final scheduleId = schedule.id ?? "";
+
+                          final isTaken =
+                              schedule.status?.toLowerCase() == "taken" ||
+                              takenMap[scheduleId] == true;
+
+                          final isCurrent = isTodaySelected && !isTaken;
+
+                          return RepaintBoundary(
+                            child: _buildAdvancedTimelineItem(
+                              item: TimelineMedicine(
+                                // doseId: medication.id ?? "",
+                                doseId: scheduleId ?? "",
+                                time: time,
+
+                                title: medication.name ?? "Medicine",
+                                sub:
+                                    "${medication.dosage ?? ""}${medication.unit ?? ""}",
+                                icon: Icons.medication,
+                                // isTaken: false,
+                                // isTaken: takenMap[scheduleId ?? ""] ?? false,
+                                isTaken: isTaken,
+                                // isTaken:
+                                //     schedule.status?.toLowerCase() ==
+                                //         "taken" ||
+                                //     takenMap[scheduleId] == true,
+                              ),
+                              isLast: index == filteredMedications.length - 1,
+                              // isCurrent: index == 0,
+                              isCurrent: isCurrent,
+                              onMarkTaken: () async {
+                                final doseId = scheduleId;
+
+                                setState(() {
+                                  loadingDoseIds.add(doseId);
+                                });
+
+                                final result = await ref.read(
+                                  markDoseTakenProvider(doseId).future,
+                                );
+
+                                setState(() {
+                                  loadingDoseIds.remove(doseId);
+                                });
+
+                                if (result.status == ResponseStatus.SUCCESS) {
+                                  setState(() {
+                                    takenMap[doseId] = true;
+                                  });
+
+                                  ref.invalidate(getTodayScheduleProvider);
+                                }
+                              },
+                              onVerifyWithSelfie: () async {
+                                // final doseId = todayList.length > index
+                                //     ? todayList[index].id ?? ""
+                                //     : "";
+                                final doseId = scheduleId;
+
+                                final result = await Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) =>
+                                        SelfieVerficationMedicineScreen(
+                                          doseId: doseId,
+                                          medicineName: medication.name ?? "",
+                                          dosage: "${medication.dosage ?? ""}",
+                                          unit: medication.unit ?? "mg",
+                                        ),
+                                  ),
+                                );
+
+                                if (result != null) {
+                                  setState(() {
+                                    takenMap[doseId] = true;
+                                  });
+
+                                  await ref.refresh(
+                                    getTodayScheduleProvider.future,
+                                  );
+                                  // await ref.refresh(getMedicationsProvider.future);
+                                }
+                              },
+                            ),
+                          );
+                        },
+                        childCount: filteredMedications.length,
+                        addAutomaticKeepAlives: false,
+                        addRepaintBoundaries: true,
+                        addSemanticIndexes: false,
+                      ),
+                    ),
+                  );
+                },
+              ),
+
+              const SliverToBoxAdapter(child: SizedBox(height: 10)),
+
+              SliverToBoxAdapter(
+                child: RepaintBoundary(child: _buildMedicalComplianceButton()),
+              ),
+
+              const SliverToBoxAdapter(child: SizedBox(height: 100)),
+            ],
+          ),
         ),
-      ),
-      // floatingActionButton: FloatingActionButton(
+      ), // floatingActionButton: FloatingActionButton(
       //   onPressed: () {},
       //   backgroundColor: accentCyan,
       //   child: const Icon(Icons.add, color: Colors.black, size: 28),
@@ -213,14 +432,26 @@ class _MedicationsScreenState extends State<MedicationsScreen> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                // const Icon(
-                //   Icons.calendar_month_outlined,
-                //   color: Color(0xFF81DEEA),
-                //   size: 20,
-                // ),
+
+                GestureDetector(
+                  onTap: selectDate,
+                  child: Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: surfaceColor,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: accentCyan.withOpacity(0.2)),
+                    ),
+                    child: const Icon(
+                      Icons.calendar_month_outlined,
+                      color: accentCyan,
+                      size: 20,
+                    ),
+                  ),
+                ),
               ],
             ),
-          ),
+),
           const SizedBox(height: 15),
 
           // Scrollable area
@@ -433,8 +664,12 @@ class _MedicationsScreenState extends State<MedicationsScreen> {
     required bool isLast,
     required bool isCurrent,
     required VoidCallback onMarkTaken,
+    required VoidCallback onVerifyWithSelfie,
   }) {
     bool isTaken = item.isTaken;
+
+    // final markState = ref.watch(markDoseTakenProvider(item.doseId));
+    final isLoading = loadingDoseIds.contains(item.doseId);
 
     return IntrinsicHeight(
       child: Row(
@@ -523,12 +758,17 @@ class _MedicationsScreenState extends State<MedicationsScreen> {
                       width: double.infinity,
                       height: 42,
                       child: ElevatedButton.icon(
-                        // ✅ Changed to .icon
-                        onPressed: onMarkTaken,
-                        icon: const Icon(
-                          Icons.check_circle_outline,
-                          size: 18,
-                        ), // ✅ Added Icon
+                        onPressed: isLoading ? null : onMarkTaken,
+                        icon: isLoading
+                            ? const SizedBox(
+                                height: 16,
+                                width: 16,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white54,
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : const Icon(Icons.check_circle_outline, size: 18),
                         label: const Text("Mark as Taken"),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: accentCyan,
@@ -546,14 +786,20 @@ class _MedicationsScreenState extends State<MedicationsScreen> {
                       height: 42,
                       child: OutlinedButton.icon(
                         // ✅ Changed to .icon
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => SelfieVerficationMedicineScreen(),
-                            ),
-                          );
-                        },
+                        onPressed: isLoading ? null : onVerifyWithSelfie,
+                        //                         onPressed: () {
+                        //                           Navigator.push(
+                        //                             context,
+                        //                             MaterialPageRoute(
+                        //                               builder: (_) => SelfieVerficationMedicineScreen(
+                        //   doseId:m.id ?? "",
+                        //   medicineName: schedule.name ?? "",
+                        //   dosage: schedule.dosage ?? "",
+                        //   unit: schedule.unit ?? "mg",
+                        // ),
+                        //                             ),
+                        //                           );
+                        //                         },
                         icon: const Icon(
                           Icons.camera_alt_outlined,
                           size: 18,
@@ -584,17 +830,12 @@ class _MedicationsScreenState extends State<MedicationsScreen> {
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Row(
-                        // Added row for internal consistency
                         mainAxisSize: MainAxisSize.min,
                         children: const [
-                          Icon(
-                            Icons.verified_user,
-                            color: accentCyan,
-                            size: 12,
-                          ),
+                          Icon(Icons.check_circle, color: accentCyan, size: 12),
                           SizedBox(width: 6),
                           Text(
-                            "VERIFIED • LOGGED",
+                            "Medicine Taken",
                             style: TextStyle(
                               color: accentCyan,
                               fontSize: 10,
@@ -710,37 +951,41 @@ class _MedicationsScreenState extends State<MedicationsScreen> {
 
   /// 🔹 Helper: Weekly Compliance Card
 
-Widget _buildMedicalComplianceButton() {
-  return Padding(
-    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-    child: SizedBox(
-      width: double.infinity,
-      height: 55,
-      child: ElevatedButton.icon(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => const MedicalRecordsScreen(),
+  Widget _buildMedicalComplianceButton() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+      child: SizedBox(
+        width: double.infinity,
+        height: 55,
+        child: ElevatedButton.icon(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const MedicalRecordsScreen()),
+            );
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: accentCyan,
+            foregroundColor: Colors.black,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
             ),
-          );
-        },
-        style: ElevatedButton.styleFrom(
-          backgroundColor: accentCyan,
-          foregroundColor: Colors.black,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+          ),
+          icon: Image.asset(
+            "assets/images/item2.png",
+            width: 20,
+            height: 20,
+            color: Colors.black,
+          ),
+          label: const Text(
+            "Compliance Records",
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
           ),
         ),
-        icon: const Icon(Icons.verified_user),
-        label: const Text(
-          "Medical Record Compliance",
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-        ),
       ),
-    ),
-  );
-}
+    );
+  }
+
   Widget _buildAddMedicationCard() {
     return Container(
       padding: const EdgeInsets.all(20),
@@ -800,17 +1045,23 @@ Widget _buildMedicalComplianceButton() {
             width: double.infinity,
             height: 52,
             child: ElevatedButton(
-              onPressed: () {
+              onPressed: () async {
                 // Navigate to your medication adding logic
 
-                Navigator.push(
+                final result = await Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => const MedicationVerificationScreen(
-                      medicineName: "Add Medication",
-                    ),
+                    builder: (context) =>
+                        MedicationVerificationScreen(medicineName: "Test"),
                   ),
                 );
+
+                if (result == true) {
+                  await ref.refresh(getMedicationsProvider.future);
+                  await ref.refresh(getTodayScheduleProvider.future);
+
+                  setState(() {});
+                }
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF81DEEA),
@@ -838,22 +1089,32 @@ Widget _buildMedicalComplianceButton() {
     );
   }
 
-  PreferredSizeWidget _buildAppBar() {
+  PreferredSizeWidget _buildAppBar(ProfileModel? profile) {
     return AppBar(
       backgroundColor: darkBg,
       elevation: 0,
       title: Row(
-        children: const [
+        children: [
           CircleAvatar(
             radius: 18,
             backgroundColor: surfaceColor,
-            backgroundImage: NetworkImage(
-              'https://i.pravatar.cc/100?img=12',
-            ), // Using NetworkImage for pravatar
+
+            backgroundImage:
+                profile?.profilePic != null && profile!.profilePic!.isNotEmpty
+                ? CachedNetworkImageProvider(
+                    "${profile.profilePic!}?t=${DateTime.now().millisecondsSinceEpoch}",
+                  )
+                : null,
+
+            child: profile?.profilePic == null || profile!.profilePic!.isEmpty
+                ? const Icon(Icons.person, color: Colors.white, size: 18)
+                : null,
           ),
-          SizedBox(width: 12),
-          Text(
-            "Medikto",
+
+          const SizedBox(width: 12),
+
+          const Text(
+            "My Medications",
             style: TextStyle(
               color: Colors.white,
               fontWeight: FontWeight.bold,
@@ -870,6 +1131,7 @@ Widget _buildMedicalComplianceButton() {
           ),
           icon: const Icon(Icons.notifications, color: accentCyan),
         ),
+
         const SizedBox(width: 10),
       ],
     );
