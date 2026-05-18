@@ -4,9 +4,11 @@ import 'package:dio/dio.dart';
 import 'package:medikto/core/constants/api_urls.dart';
 import 'package:medikto/core/network/base_response.dart';
 import 'package:medikto/core/network/dio_client.dart';
+import 'package:medikto/core/utils/storage_keys.dart';
 import 'package:medikto/features/medications/models/adherence_model.dart';
 import 'package:medikto/features/medications/models/medication_model.dart';
 import 'package:medikto/features/medications/models/today_scheduled_model.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class MedicationManager {
   factory MedicationManager() {
@@ -23,10 +25,16 @@ class MedicationManager {
     Response response;
 
     try {
+      final prefs = await SharedPreferences.getInstance();
+
+      final userId = prefs.getString(StorageKeys.userId);
       response = await dioClient.ref!.post(
         ApiUrls.medications,
         data: medication.toJson(),
+        // data: {...medication.toJson(), "user": userId},
       );
+
+      print("REQUEST DATA => ${{...medication.toJson(), "user": userId}}");
 
       print("ADD MEDICATION RESPONSE => ${response.data}");
 
