@@ -153,7 +153,16 @@ Future<void> _verifyOtp() async {
                     submittedPinTheme: defaultPinTheme,
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     separatorBuilder: (index) => const SizedBox(width: 8),
-                    onCompleted: (pin) => _verifyOtp(),
+                    // onCompleted: (pin) => _verifyOtp(),
+                    onCompleted: (pin) {
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const BaseBottomNavigationPage(),
+                        ),
+                        (route) => false,
+                      );
+                    },
                     autofocus: true,
                     cursor: Container(width: 2, height: 24, color: accentCyan),
                   ),
