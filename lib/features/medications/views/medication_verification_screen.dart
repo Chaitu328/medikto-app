@@ -683,18 +683,62 @@ class _MedicationVerificationScreenState
                   ),
                 ],
               ),
-              _buildActivityTile(
-                "Omega-3",
-                "08:30 AM • Verified",
-                "TAKEN",
-                Colors.teal,
+              Consumer(
+                builder: (context, ref, child) {
+                  final historyAsync = ref.watch(getTodayScheduleProvider);
+
+                  return historyAsync.when(
+                    loading: () => const Padding(
+                      padding: EdgeInsets.all(20),
+                      child: Center(child: CircularProgressIndicator()),
+                    ),
+
+                    error: (error, stack) => Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Text(
+                        error.toString(),
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                    ),
+
+                    data: (response) {
+                      final List<dynamic> historyData = response.data ?? [];
+
+                      if (historyData.isEmpty) {
+                        return const Padding(
+                          padding: EdgeInsets.all(20),
+                          child: Text(
+                            "No Recent Activity",
+                            style: TextStyle(color: Colors.white54),
+                          ),
+                        );
+                      }
+
+                      return Column(
+                        children: historyData.take(3).map((item) {
+                          final bool isTaken =
+                              (item.status ?? "").toLowerCase() == "taken";
+
+                          final Color statusColor = isTaken
+                              ? Colors.teal
+                              : Colors.redAccent;
+
+                          return _buildActivityTile(
+                            item.name ?? "No Name",
+
+                            "${item.time ?? ""} • ${item.verified == true ? "Verified" : "Not Verified"}",
+
+                            (item.status ?? "").toUpperCase(),
+
+                            statusColor,
+                          );
+                        }).toList(),
+                      );
+                    },
+                  );
+                },
               ),
-              _buildActivityTile(
-                "Vitamin D3",
-                "11:00 AM • Pending",
-                "MISSED",
-                Colors.redAccent,
-              ),
+              
               const SizedBox(height: 50),
             ],
           ),
