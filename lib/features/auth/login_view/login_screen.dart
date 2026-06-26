@@ -266,17 +266,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
                 /// 🔥 BUTTON (Cyan Branding)
                 CustomButton(
-                  // onPressed: isButtonEnabled ? handleLogin : null,
-                  onPressed: isButtonEnabled
-                      ? () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const OtpScreen(),
-                            ),
-                          );
-                        }
-                      : null,
+                  onPressed: isButtonEnabled ? handleLogin : null,
+                  // onPressed: isButtonEnabled
+                  //     ? () {
+                  //         Navigator.push(
+                  //           context,
+                  //           MaterialPageRoute(
+                  //             builder: (_) => const OtpScreen(),
+                  //           ),
+                  //         );
+                  //       }
+                  //     : null,
                   buttonText: "Send OTP",
                   buttonColor: isButtonEnabled
                       ? accentCyan

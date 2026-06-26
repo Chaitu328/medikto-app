@@ -14,51 +14,25 @@ class BaseBottomNavigationPage extends StatefulWidget {
 }
 
 class _BaseBottomNavigationPageState extends State<BaseBottomNavigationPage> {
-
   int _currentIndex = 0;
 
-  late final List<Widget> _tabs;
+  final List<Widget> _tabs = const [
+    HomeScreen(),
+    MedicationsScreen(),
+    AddReportsScreen(), // Renamed from Vitals
+    ProfileScreen(),
+  ];
 
   @override
   void initState() {
     super.initState();
-
     _currentIndex = widget.index ?? 0;
-
-    _tabs = [
-      const HomeScreen(),
-      const MedicationsScreen(),
-      const AddReportsScreen(),
-      const ProfileScreen(),
-    ];
   }
 
   void _onItemTapped(int index) {
     if (_currentIndex == index) return;
-
-    setState(() {
-      _currentIndex = index;
-    });
+    setState(() => _currentIndex = index);
   }
-  // int _currentIndex = 0;
-
-  // final List<Widget> _tabs = const [
-  //   HomeScreen(),
-  //   MedicationsScreen(),
-  //   AddReportsScreen(), // Renamed from Vitals
-  //   ProfileScreen(),
-  // ];
-
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   _currentIndex = widget.index ?? 0;
-  // }
-
-  // void _onItemTapped(int index) {
-  //   if (_currentIndex == index) return;
-  //   setState(() => _currentIndex = index);
-  // }
 
   @override
   Widget build(BuildContext context) {

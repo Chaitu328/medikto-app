@@ -66,22 +66,13 @@ class _MedicationsScreenState extends ConsumerState<MedicationsScreen> {
 
       final bTime = b.timings?.isNotEmpty == true ? b.timings!.first : "";
 
-      // final aSchedule = todayList.firstWhere(
-      //   (e) => e.name == a.name && e.time == aTime,
-      //   orElse: () => TodayScheduleModel(),
-      // );
-
-      // final bSchedule = todayList.firstWhere(
-      //   (e) => e.name == b.name && e.time == bTime,
-      //   orElse: () => TodayScheduleModel(),
-      // );
       final aSchedule = todayList.firstWhere(
-        (e) => e.medication == a.id,
+        (e) => e.name == a.name && e.time == aTime,
         orElse: () => TodayScheduleModel(),
       );
 
       final bSchedule = todayList.firstWhere(
-        (e) => e.medication == b.id,
+        (e) => e.name == b.name && e.time == bTime,
         orElse: () => TodayScheduleModel(),
       );
 
@@ -142,7 +133,6 @@ class _MedicationsScreenState extends ConsumerState<MedicationsScreen> {
       });
     }
   }
-
   @override
   Widget build(BuildContext context) {
     final medicationsAsync = ref.watch(getMedicationsProvider);
@@ -226,8 +216,8 @@ class _MedicationsScreenState extends ConsumerState<MedicationsScreen> {
               const SliverToBoxAdapter(child: SizedBox(height: 15)),
 
               /// FILTERED MEDICATIONS
-              SliverLayoutBuilder(
-                builder: (context, constraints) {
+              Builder(
+                builder: (context) {
                   final filteredMedications = _getMedicationsForSelectedDate(
                     medications,
                     todayList,
@@ -243,37 +233,26 @@ class _MedicationsScreenState extends ConsumerState<MedicationsScreen> {
                       child: Padding(
                         padding: EdgeInsets.symmetric(
                           horizontal: 20,
-
                           vertical: 40,
                         ),
-
                         child: Center(
                           child: Container(
                             margin: const EdgeInsets.only(top: 10),
-
                             padding: const EdgeInsets.all(20),
-
                             decoration: BoxDecoration(
                               color: Colors.white.withAlpha(20),
-
                               borderRadius: BorderRadius.circular(16),
                             ),
-
                             child: const Column(
                               children: [
                                 Icon(
                                   Icons.hourglass_empty,
-
                                   color: Colors.white30,
-
                                   size: 40,
                                 ),
-
                                 SizedBox(height: 10),
-
                                 Text(
                                   "No medications for this date",
-
                                   style: TextStyle(color: Colors.white54),
                                 ),
                               ],
@@ -302,19 +281,12 @@ class _MedicationsScreenState extends ConsumerState<MedicationsScreen> {
 
                           final schedule = isTodaySelected
                               ? todayList.firstWhere(
-                                  (e) => e.medication == medication.id,
+                                  (e) =>
+                                      e.name == medication.name &&
+                                      e.time == currentTime,
                                   orElse: () => TodayScheduleModel(),
                                 )
                               : TodayScheduleModel(status: "taken");
-
-                          // final schedule = isTodaySelected
-                          //     ? todayList.firstWhere(
-                          //         (e) =>
-                          //             e.name == medication.name &&
-                          //             e.time == currentTime,
-                          //         orElse: () => TodayScheduleModel(),
-                          //       )
-                          //     : TodayScheduleModel(status: "taken");
 
                           final scheduleId = schedule.id ?? "";
 
@@ -411,6 +383,7 @@ class _MedicationsScreenState extends ConsumerState<MedicationsScreen> {
                   );
                 },
               ),
+
               const SliverToBoxAdapter(child: SizedBox(height: 10)),
 
               SliverToBoxAdapter(
@@ -478,7 +451,7 @@ class _MedicationsScreenState extends ConsumerState<MedicationsScreen> {
                 ),
               ],
             ),
-          ),
+),
           const SizedBox(height: 15),
 
           // Scrollable area

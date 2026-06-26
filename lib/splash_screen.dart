@@ -21,13 +21,7 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    // checkAppFlow();
-    Future.delayed(const Duration(seconds: 2), () {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const OnboardingScreens()),
-      );
-    });
+    checkAppFlow();
   }
 
   Future<void> checkAppFlow() async {

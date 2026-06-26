@@ -8,7 +8,6 @@ class TodayScheduleModel {
   final String? takenAt;
   final bool? verified;
   final String? proofImage;
-  String? medication;
 
   TodayScheduleModel({
     this.id,
@@ -20,7 +19,6 @@ class TodayScheduleModel {
     this.takenAt,
     this.verified,
     this.proofImage,
-    this.medication,
   });
 
   factory TodayScheduleModel.fromJson(Map<String, dynamic> json) {
@@ -34,8 +32,6 @@ class TodayScheduleModel {
       takenAt: json["takenAt"],
       verified: json["verified"],
       proofImage: json["proofImage"],
-      medication: json['medication'],
-      
     );
   }
 }
